@@ -83,11 +83,11 @@ class PayPal extends PaymentModule
 	const ONLY_WRAPPING	= 6;
 	const ONLY_PRODUCTS_WITHOUT_SHIPPING = 7;
 
-        public function __construct()
+		public function __construct()
 	{
 		$this->name = 'paypal';
 		$this->tab = 'payments_gateways';
-		$this->version = '3.10.3';
+		$this->version = '3.11.0';
 		$this->author = 'PrestaShop';
 		$this->is_eu_compatible = 1;
 
@@ -126,15 +126,15 @@ class PayPal extends PaymentModule
 
 	public function install()
 	{
-        if (!parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn') ||
-        !$this->registerHook('shoppingCartExtra') || !$this->registerHook('backBeforePayment') || !$this->registerHook('rightColumn') ||
-        !$this->registerHook('cancelProduct') || !$this->registerHook('productFooter') || !$this->registerHook('header') ||
-        !$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader'))
-            return false;
+		if (!parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn') ||
+		!$this->registerHook('shoppingCartExtra') || !$this->registerHook('backBeforePayment') || !$this->registerHook('rightColumn') ||
+		!$this->registerHook('cancelProduct') || !$this->registerHook('productFooter') || !$this->registerHook('header') ||
+		!$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader'))
+			return false;
 
-        if ((_PS_VERSION_ >= '1.5') && (!$this->registerHook('displayMobileHeader') ||
-        !$this->registerHook('displayMobileShoppingCartTop') || !$this->registerHook('displayMobileAddToCartTop') || !$this->registerHook('displayPaymentEU') || !$this->registerHook('actionPSCleanerGetModulesTables')))
-            return false;
+		if ((_PS_VERSION_ >= '1.5') && (!$this->registerHook('displayMobileHeader') ||
+		!$this->registerHook('displayMobileShoppingCartTop') || !$this->registerHook('displayMobileAddToCartTop') || !$this->registerHook('displayPaymentEU') || !$this->registerHook('actionPSCleanerGetModulesTables')))
+			return false;
 
 
 		include_once(_PS_MODULE_DIR_.$this->name.'/paypal_install.php');
@@ -363,7 +363,7 @@ class PayPal extends PaymentModule
 
 		if ($this->active == false)
 			return $output.$this->hookBackOfficeHeader();
-                
+				
 		return $output;
 	}
 
@@ -534,7 +534,7 @@ class PayPal extends PaymentModule
 			'de' => 'de_DE',
 		);
 
-                
+				
 		$this->context->smarty->assign(array(
 			'logos' => $this->paypal_logos->getLogos(),
 			'sandbox_mode' => Configuration::get('PAYPAL_SANDBOX'),
@@ -604,26 +604,26 @@ class PayPal extends PaymentModule
 
 			return $this->fetchTemplate('express_checkout_payment.tpl');
 		}
-                elseif ($method == PPP)
-                {
+				elseif ($method == PPP)
+				{
 
-                    $CallApiPaypalPlus = new CallApiPaypalPlus();
-                    $CallApiPaypalPlus->setParams($params);
-                              
-                    $approuval_url = $CallApiPaypalPlus->getApprovalUrl();
+					$CallApiPaypalPlus = new CallApiPaypalPlus();
+					$CallApiPaypalPlus->setParams($params);
+							  
+					$approuval_url = $CallApiPaypalPlus->getApprovalUrl();
 					
-                    $this->context->smarty->assign(
-                        array(
-                                'approval_url' => $approuval_url,
-                                'language' => $this->context->language->language_code,
-                                'country' => $this->context->language->iso_code,
-                                'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox' : 'live'
-                        )
-                    );
+					$this->context->smarty->assign(
+						array(
+								'approval_url' => $approuval_url,
+								'language' => $this->context->language->language_code,
+								'country' => $this->context->language->iso_code,
+								'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox' : 'live'
+						)
+					);
 
-                    return $this->fetchTemplate('paypal_plus_payment.tpl');
+					return $this->fetchTemplate('paypal_plus_payment.tpl');
 
-                }
+				}
 	}
 
 	public function hookDisplayPaymentEU($params) 
@@ -1230,10 +1230,10 @@ class PayPal extends PaymentModule
 				Configuration::updateValue('PAYPAL_LOGIN_SECRET', Tools::getValue('paypal_login_client_secret'));
 				Configuration::updateValue('PAYPAL_LOGIN_TPL', (int)Tools::getValue('paypal_login_client_template'));
 				/* /USE PAYPAL LOGIN */
-                                if ((int)Tools::getValue('paypal_payment_method') == 5) {
-                                    Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));
-                                    Configuration::updateValue('PAYPAL_PLUS_SECRET', Tools::getValue('secret'));
-                                }
+								if ((int)Tools::getValue('paypal_payment_method') == 5) {
+									Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));
+									Configuration::updateValue('PAYPAL_PLUS_SECRET', Tools::getValue('secret'));
+								}
 				/* IS IN_CONTEXT_CHECKOUT ENABLED */
 				if((int)Tools::getValue('paypal_payment_method') != 2)
 					Configuration::updateValue('PAYPAL_IN_CONTEXT_CHECKOUT', (int)Tools::getValue('in_context_checkout'));
@@ -1374,14 +1374,14 @@ class PayPal extends PaymentModule
 
 		$message = $this->l('Refund operation result:'). " \r\n";
 		foreach ($response as $key => $value){
-                        if(is_object($value) || is_array($value)){
-                            $message .= $key.': '.json_encode($value). " \r\n";
+						if(is_object($value) || is_array($value)){
+							$message .= $key.': '.json_encode($value). " \r\n";
 
-                        }else{
-                            $message .= $key.': '.$value. " \r\n";
-                        }
+						}else{
+							$message .= $key.': '.$value. " \r\n";
+						}
 			
-                }
+				}
 		if ((array_key_exists('ACK', $response) && $response['ACK'] == 'Success' && $response['REFUNDTRANSACTIONID'] != '') || (isset($response->state) && $response->state == 'completed'))
 		{
 			$message .= $this->l('PayPal refund successful!');
@@ -1534,7 +1534,7 @@ class PayPal extends PaymentModule
 			elseif (@filemtime(dirname(__FILE__).'/'.$views.'admin/'.$name))
 				return $this->display(__FILE__, $views.'admin/'.$name);
 		}
-                
+				
 
 		return $this->display(__FILE__, $name);
 	}
