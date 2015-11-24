@@ -31,19 +31,21 @@ class CallApiPaypalPlus extends ApiPaypalPlus
          */
         $accessToken = $this->getToken(URL_PPP_CREATE_TOKEN, array('grant_type' => 'client_credentials'));
 
-        $result = json_decode($this->createPayment($this->customer, $this->cart, $accessToken));
+		if($accessToken != false){
+		
+			$result = json_decode($this->createPayment($this->customer, $this->cart, $accessToken));
 
-        if (isset($result->links)) {
+			if (isset($result->links)) {
 
-            foreach ($result->links as $link) {
+				foreach ($result->links as $link) {
 
-                if ($link->rel == 'approval_url') {
-                    return $link->href;
-                }
-            }
-        } else {
-            return false;
-        }
+					if ($link->rel == 'approval_url') {
+						return $link->href;
+					}
+				}
+			}
+		}
+		return false;
     }
 
     public function lookUpPayment($paymentId)
