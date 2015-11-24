@@ -33,8 +33,11 @@ class ApiPaypalPlus
         $ch = curl_init();
 
         if ($ch) {
-
-            curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+			
+			if ((int)Configuration::get('PAYPAL_SANDBOX') == 1)
+				curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+			else
+				curl_setopt($ch, CURLOPT_URL, 'https://api.paypal.com'.$url);
 
             if ($identify) {
                 curl_setopt($ch, CURLOPT_USERPWD,
