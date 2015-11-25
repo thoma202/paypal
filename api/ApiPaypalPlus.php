@@ -34,7 +34,10 @@ class ApiPaypalPlus
 
         if ($ch) {
 
-            curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+           if ((int)Configuration::get('PAYPAL_SANDBOX') == 1)
+				curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+			else
+				curl_setopt($ch, CURLOPT_URL, 'https://api.paypal.com'.$url);
 
             if ($identify) {
                 curl_setopt($ch, CURLOPT_USERPWD,
@@ -73,19 +76,24 @@ class ApiPaypalPlus
          * Init variable
          */
         $oPayPalToken = json_decode($result);
+		
+		if(isset($oPayPalToken->error)){
+			return false;
+		}else{
+		
+			$time_max     = time() + $oPayPalToken->expires_in;
+			$access_token = $oPayPalToken->access_token;
 
-        $time_max     = time() + $oPayPalToken->expires_in;
-        $access_token = $oPayPalToken->access_token;
 
+			/*
+			 * Set Token in Cookie
+			 */
+			$this->context->cookie->__set('paypal_access_token_time_max', $time_max);
+			$this->context->cookie->__set('paypal_access_token_access_token', $access_token);
+			$this->context->cookie->write();
 
-        /*
-         * Set Token in Cookie
-         */
-        $this->context->cookie->__set('paypal_access_token_time_max', $time_max);
-        $this->context->cookie->__set('paypal_access_token_access_token', $access_token);
-        $this->context->cookie->write();
-
-        return $access_token;
+			return $access_token;
+		}
     }
 
     public function refreshToken()
