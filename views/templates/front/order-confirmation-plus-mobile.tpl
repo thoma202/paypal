@@ -69,8 +69,8 @@
                     var form = $('#formConfirm');
                     var nameSubmit = $("input[type=submit][clicked=true]").attr('name');
 					
-                    $('#cancel').attr('disabled','disabled');
-                    $('#confirm').attr('disabled','disabled');
+					$('#cancel').attr('disabled','disabled');
+					$('#confirm').attr('disabled','disabled');
 
                     $.ajax({
                         url: '{$linkSubmitPlus}',
@@ -87,8 +87,8 @@
 
 
                                 setTimeout(function () {
-                                   document.location.href="{$base_dir}";
-                                }, 2000);
+                                    $(location).attr('href', "{$base_dir}");
+                                }, 3000);
 
                             }
 
@@ -97,8 +97,8 @@
 
 
                                 setTimeout(function () {
-                                    document.location.href="{$base_dir}";
-                                }, 2000);
+                                    $(location).attr('href', "{$base_dir}");
+                                }, 3000);
 
                             }
                         }

@@ -365,6 +365,7 @@ class PayPal extends PaymentModule
 			'default_lang_iso' => Language::getIsoById($this->context->employee->id_lang),
 			'PayPal_plus_client' => Configuration::get('PAYPAL_PLUS_CLIENT_ID'),
 			'PayPal_plus_secret' => Configuration::get('PAYPAL_PLUS_SECRET'),
+			'PayPal_plus_webprofile' => (Configuration::get('PAYPAL_WEB_PROFILE_ID') != '0') ? Configuration::get('PAYPAL_WEB_PROFILE_ID') : 0,
 		));
 
 		$this->getTranslations();
@@ -1206,6 +1207,9 @@ class PayPal extends PaymentModule
 				
 				if($payment_method == PPP && (!Tools::getValue('client_id') || !Tools::getValue('secret') ) )
 					$this->_errors[] = $this->l('Credentials fields cannot be empty');
+
+				if($payment_method == PPP && (Tools::getValue('paypalplus_webprofile') != 0 && ( !Tools::getValue('client_id') && !Tools::getValue('secret')) ) )
+					$this->_errors[] = $this->l('Credentials fields cannot be empty');
 			
 				if($payment_method == HSS && !Tools::getValue('api_business_account'))
 					$this->_errors[] = $this->l('Business e-mail field cannot be empty');
@@ -1239,11 +1243,26 @@ class PayPal extends PaymentModule
 				Configuration::updateValue('PAYPAL_LOGIN_CLIENT_ID', Tools::getValue('paypal_login_client_id'));
 				Configuration::updateValue('PAYPAL_LOGIN_SECRET', Tools::getValue('paypal_login_client_secret'));
 				Configuration::updateValue('PAYPAL_LOGIN_TPL', (int)Tools::getValue('paypal_login_client_template'));
-				/* /USE PAYPAL LOGIN */
+				
+                                /* USE PAYPAL PLUS */
                                 if ((int)Tools::getValue('paypal_payment_method') == 5) {
                                     Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));
                                     Configuration::updateValue('PAYPAL_PLUS_SECRET', Tools::getValue('secret'));
+
+                                    if((int)Tools::getValue('paypalplus_webprofile') == 1){
+
+                                        $ApiPaypalPlus = new ApiPaypalPlus();
+                                        $idWebProfile = $ApiPaypalPlus->getWebProfile();
+
+                                        if($idWebProfile){
+                                            Configuration::updateValue('PAYPAL_WEB_PROFILE_ID', $idWebProfile);
+                                        }else{
+                                            Configuration::updateValue('PAYPAL_WEB_PROFILE_ID', 0);
+                                        }
+
+                                    }
                                 }
+
 				/* IS IN_CONTEXT_CHECKOUT ENABLED */
 				if((int)Tools::getValue('paypal_payment_method') != 2)
 					Configuration::updateValue('PAYPAL_IN_CONTEXT_CHECKOUT', (int)Tools::getValue('in_context_checkout'));
