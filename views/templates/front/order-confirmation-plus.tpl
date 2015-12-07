@@ -69,8 +69,8 @@
                     var form = $('#formConfirm');
                     var nameSubmit = $("input[type=submit][clicked=true]").attr('name');
 					
-                    $('#cancel').attr('disabled','disabled');
-                    $('#confirm').attr('disabled','disabled');
+					$('#cancel').attr('disabled','disabled');
+					$('#confirm').attr('disabled','disabled');
 
                     $.ajax({
                         url: '{$linkSubmitPlus}',
@@ -84,10 +84,22 @@
 
                             if (typeof json.success != 'undefined') {
                                 $('.inforeturn').html('<p class="alert alert-success">' + json.success + '</p>');
+
+
+                                setTimeout(function () {
+                                    $(location).attr('href', "{$base_dir}");
+                                }, 3000);
+
                             }
 
                             if (typeof json.error != 'undefined') {
                                 $('.inforeturn').html('<p class="alert alert-warning paypal-error">' + json.error + '</p>');
+
+
+                                setTimeout(function () {
+                                    $(location).attr('href', "{$base_dir}");
+                                }, 3000);
+
                             }
                         }
                     });
