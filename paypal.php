@@ -436,7 +436,7 @@ class PayPal extends PaymentModule
 			if (Configuration::get('PAYPAL_PAYMENT_METHOD') == PPP) {
 
 				$this->context->smarty->assign(array(
-					'paypal_locale' => $this->getLocale(),
+					'paypal_locale' => $this->getLocalePayPalPlus(),
 					'PAYPAL_LOGIN_CLIENT_ID' => Configuration::get('PAYPAL_LOGIN_CLIENT_ID'),
 					'PAYPAL_LOGIN_TPL' => Configuration::get('PAYPAL_LOGIN_TPL'),
 					'PAYPAL_RETURN_LINK' => PayPalLogin::getReturnLink(),
@@ -451,6 +451,56 @@ class PayPal extends PaymentModule
 	{
 		return Configuration::get('PAYPAL_IN_CONTEXT_CHECKOUT') && Configuration::get('PAYPAL_IN_CONTEXT_CHECKOUT_M_ID') != null;
 	}
+
+        public function getLocalePayPalPlus(){
+            switch (strtolower($this->getCountryCode()))
+		{
+			case 'fr':
+				return 'fr_FR';
+			case 'hk':
+				return 'zh_HK';
+			case 'cn':
+				return 'zh_CN';
+			case 'tw':
+				return 'zh_TW';
+			case 'xc':
+				return 'zh_XC';
+			case 'dk':
+				return 'da_DK';
+			case 'nl':
+				return 'nl_NL';
+			case 'gb':
+				return 'en_GB';
+			case 'de':
+				return 'de_DE';
+			case 'il':
+				return 'he_IL';
+			case 'id':
+				return 'id_ID';
+			case 'il':
+				return 'it_IT';
+			case 'jp':
+				return 'ja_JP';
+			case 'no':
+				return 'no_NO';
+			case 'pt':
+				return 'pt_PT';
+			case 'pl':
+				return 'pl_PL';
+			case 'ru':
+				return 'ru_RU';
+			case 'es':
+				return 'es_ES';
+			case 'se':
+				return 'sv_SE';
+			case 'th':
+				return 'th_TH';
+			case 'tr':
+				return 'tr_TR';
+			default :
+				return 'en_GB';
+		}
+        }
 
 	public function getLocale()
 	{
@@ -626,8 +676,8 @@ class PayPal extends PaymentModule
                     $this->context->smarty->assign(
                         array(
                                 'approval_url' => $approuval_url,
-                                'language' => $this->context->language->language_code,
-                                'country' => $this->context->language->iso_code,
+                                'language' => $this->getLocalePayPalPlus(),
+                                'country' => $this->getCountryCode(),
                                 'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox' : 'live'
                         )
                     );

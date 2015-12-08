@@ -143,14 +143,13 @@ class ApiPaypalPlus
 
                 $results = $this->getListProfile();
 
-				foreach($results as $result){
-					if (isset($result->id) && $result->name == Configuration::get('PS_SHOP_NAME')) {
-						return $result->id;
-					}
-					
-				}
-				
-				return false;
+                foreach ($results as $result) {
+                    if (isset($result->id) && $result->name == Configuration::get('PS_SHOP_NAME')) {
+                        return $result->id;
+                    }
+                }
+
+                return false;
             }
         }
     }
@@ -186,6 +185,10 @@ class ApiPaypalPlus
          * Init Variable
          */
         $oCurrency = new Currency($cart->id_currency);
+        $address   = new Address((int) $cart->id_address_invoice);
+
+        $country  = new Country((int) $address->id_country);
+        $iso_code = $country->iso_code;
 
         if (version_compare(_PS_VERSION_, '1.5', '<'))
                 $totalShippingCostWithoutTax = $cart->getOrderShippingCost(null, false);
@@ -206,11 +209,34 @@ class ApiPaypalPlus
 
         $shop_url = PayPal::getShopDomainSsl(true, true);
 
+
         /*
          * Création de l'obj à envoyer à Paypal
          */
+
+        $state = new State($address->id_state);
+
+        $shipping_address                 = new stdClass();
+        $shipping_address->recipient_name = $address->alias;
+        $shipping_address->type           = 'residential';
+        $shipping_address->line1          = $address->address1;
+        $shipping_address->line2          = $address->address2;
+        $shipping_address->city           = $address->city;
+        $shipping_address->country_code   = $iso_code;
+        $shipping_address->postal_code    = $address->postcode;
+        $shipping_address->state          = ($state->iso_code == null) ? '' : $state->iso_code;
+        $shipping_address->phone          = $address->phone;
+
+        $payer_info                   = new stdClass();
+        $payer_info->email            = $customer->email;
+        $payer_info->first_name       = $address->firstname;
+        $payer_info->last_name        = $address->lastname;
+        $payer_info->country_code     = $iso_code;
+        $payer_info->shipping_address = $shipping_address;
+
         $payer                 = new stdClass();
         $payer->payment_method = "paypal";
+        //$payer->payer_info     = $payer_info;
 
         /* Item */
         foreach ($cartItems as $cartItem) {
@@ -278,6 +304,7 @@ class ApiPaypalPlus
 
         $result = $this->sendByCURL(URL_PPP_CREATE_PAYMENT, json_encode($data), $header);
 
+        exit(var_dump($result));
         return $result;
     }
 }
