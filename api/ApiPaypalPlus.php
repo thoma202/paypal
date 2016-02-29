@@ -34,7 +34,9 @@ class ApiPaypalPlus
 
         if ($ch) {
 
-            curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+            if ((int) Configuration::get('PAYPAL_SANDBOX') == 1)
+                    curl_setopt($ch, CURLOPT_URL, 'https://api.sandbox.paypal.com'.$url);
+            else curl_setopt($ch, CURLOPT_URL, 'https://api.paypal.com'.$url);
 
             if ($identify) {
                 curl_setopt($ch, CURLOPT_USERPWD,
@@ -69,23 +71,104 @@ class ApiPaypalPlus
     public function getToken($url, $body)
     {
         $result = $this->sendByCURL($url, $body, false, true);
+
         /*
          * Init variable
          */
         $oPayPalToken = json_decode($result);
 
-        $time_max     = time() + $oPayPalToken->expires_in;
-        $access_token = $oPayPalToken->access_token;
+        if (isset($oPayPalToken->error)) {
+            return false;
+        } else {
+
+            $time_max     = time() + $oPayPalToken->expires_in;
+            $access_token = $oPayPalToken->access_token;
 
 
-        /*
-         * Set Token in Cookie
-         */
-        $this->context->cookie->__set('paypal_access_token_time_max', $time_max);
-        $this->context->cookie->__set('paypal_access_token_access_token', $access_token);
-        $this->context->cookie->write();
+            /*
+             * Set Token in Cookie
+             */
+            $this->context->cookie->__set('paypal_access_token_time_max', $time_max);
+            $this->context->cookie->__set('paypal_access_token_access_token', $access_token);
+            $this->context->cookie->write();
 
-        return $access_token;
+            return $access_token;
+        }
+    }
+
+    private function _createWebProfile()
+    {
+
+
+        $presentation              = new stdClass();
+        $presentation->brand_name  = Configuration::get('PS_SHOP_NAME');
+        $presentation->logo_image  = _PS_BASE_URL_.__PS_BASE_URI__.'img/logo.jpg';
+        $presentation->locale_code = strtoupper(Language::getIsoById($this->context->language->id));
+
+        $input_fields                   = new stdClass();
+        $input_fields->allow_note       = true;
+        $input_fields->no_shipping      = 1;
+        $input_fields->address_override = 1;
+
+        $flow_config                    = new stdClass();
+        $flow_config->landing_page_type = "billing";
+
+        $webProfile               = new stdClass();
+        $webProfile->name         = Configuration::get('PS_SHOP_NAME');
+        $webProfile->presentation = $presentation;
+        $webProfile->input_fields = $input_fields;
+        $webProfile->flow_config  = $flow_config;
+
+        return $webProfile;
+    }
+
+    public function getWebProfile()
+    {
+        $accessToken = $this->getToken(URL_PPP_CREATE_TOKEN, array('grant_type' => 'client_credentials'));
+
+        if ($accessToken) {
+
+            $data = $this->_createWebProfile();
+
+            $header = array(
+                'Content-Type:application/json',
+                'Authorization:Bearer '.$accessToken
+            );
+
+            $result = json_decode($this->sendByCURL(URL_PPP_WEBPROFILE, json_encode($data), $header));
+
+            if (isset($result->id)) {
+                return $result->id;
+            } else {
+
+                $results = $this->getListProfile();
+
+				foreach($results as $result){
+					if (isset($result->id) && $result->name == Configuration::get('PS_SHOP_NAME')) {
+						return $result->id;
+					}
+					
+				}
+				
+				return false;
+            }
+        }
+    }
+
+    public function getListProfile()
+    {
+
+        $accessToken = $this->getToken(URL_PPP_CREATE_TOKEN, array('grant_type' => 'client_credentials'));
+
+        if ($accessToken) {
+
+            $header = array(
+                'Content-Type:application/json',
+                'Authorization:Bearer '.$accessToken
+            );
+
+            return json_decode($this->sendByCURL(URL_PPP_WEBPROFILE, false, $header));
+        }
     }
 
     public function refreshToken()
@@ -115,7 +198,7 @@ class ApiPaypalPlus
         if ($cart->gift) {
             if (version_compare(_PS_VERSION_, '1.5.3.0', '>=')) $giftWithoutTax = $cart->getGiftWrappingPrice(false);
             else $giftWithoutTax = (float) (Configuration::get('PS_GIFT_WRAPPING_PRICE'));
-        }else{
+        }else {
             $giftWithoutTax = 0;
         }
 
@@ -173,11 +256,12 @@ class ApiPaypalPlus
         $redirectUrls->return_url = $shop_url._MODULE_DIR_.'paypal/paypal_plus/submit.php?id_cart='.(int) $cart->id;
 
         /* Payment */
-        $payment                = new stdClass();
-        $payment->transactions  = array($transaction);
-        $payment->payer         = $payer;
-        $payment->intent        = "sale";
-        $payment->redirect_urls = $redirectUrls;
+        $payment                        = new stdClass();
+        $payment->transactions          = array($transaction);
+        $payment->payer                 = $payer;
+        $payment->intent                = "sale";
+        $payment->experience_profile_id = Configuration::get('PAYPAL_WEB_PROFILE_ID');
+        $payment->redirect_urls         = $redirectUrls;
 
         return $payment;
     }
@@ -191,9 +275,9 @@ class ApiPaypalPlus
             'Content-Type:application/json',
             'Authorization:Bearer '.$access_token
         );
-       
+
         $result = $this->sendByCURL(URL_PPP_CREATE_PAYMENT, json_encode($data), $header);
-       
+
         return $result;
     }
 }
