@@ -126,3 +126,10 @@ label span.description{display:block;padding-left:16px}
   background: url("../../../../img/admin/warning.gif") no-repeat 10px;
   padding-left: 40px !important;
 }
+
+.braintree-row-payment {
+  padding:5px;
+  border:solid 1px #d6d4d4;
+  border-radius: 4px;
+  margin:0px;
+}

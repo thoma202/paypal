@@ -96,6 +96,19 @@ class PayPalInstall
             return false;
         }
 
+        if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paypal_braintree` (
+                `id_paypal_braintree` int(11) NOT NULL,
+                `id_cart` int(11) NOT NULL,
+                `nonce_payment_token` varchar(255) NOT NULL,
+                `client_token` text NOT NULL,
+                `transaction` varchar(255) NULL,
+                `datas` varchar(255) NULL,
+                `id_order` int(11) NULL,
+			    PRIMARY KEY (`id_paypal_braintree`)
+				) ENGINE='._MYSQL_ENGINE_.'  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;')) {
+            return false;
+        }
     }
 
     /**
@@ -118,12 +131,14 @@ class PayPalInstall
         Configuration::updateValue('PAYPAL_SHIPPING_COST', 20.00);
         Configuration::updateValue('PAYPAL_VERSION', $paypal_version);
         Configuration::updateValue('PAYPAL_COUNTRY_DEFAULT', (int) Configuration::get('PS_COUNTRY_DEFAULT'));
-
+        Configuration::updateValue('PAYPAL_USE_3D_SECURE',1);
         // PayPal v3 configuration
         Configuration::updateValue('PAYPAL_EXPRESS_CHECKOUT_SHORTCUT', 1);
         $paypal = new Paypal();
         $ssl_verif = new TLSVerificator(true, $paypal);
         Configuration::updateValue('PAYPAL_VERSION_TLS_CHECKED', $ssl_verif->getVersion());
+
+        Configuration::updateValue('VZERO_ENABLED',0);
     }
 
     /**

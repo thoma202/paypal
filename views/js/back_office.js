@@ -33,6 +33,7 @@ $(document).ready(function () {
         var paypal_business = $('input[name="business"]:checked').val();
         var paypal_payment_method = $('input[name="paypal_payment_method"]:checked').val();
         var integral_evolution_solution = $('input[name="integral_evolution_solution"]:checked').val();
+        var braintree = $('input[name="paypal_payment_pvz"]:checked').val();
         $('#signup span.paypal-signup-content').hide();
         $('#signup .paypal-signup-button').hide();
 
@@ -54,6 +55,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideUp();
                         $('#express_checkout_shortcut').slideDown();
                         $('#in_context_checkout').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         break;
                     case PayPal_HSS:
                         $('#signup').slideDown();
@@ -68,6 +71,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideDown();
                         $('label[for="paypal_payment_wpp"] .toolbox').slideDown();
                         $('#in_context_checkout').slideUp();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         switch (integral_evolution_solution)
                         {
                             case "1": //Iframe
@@ -88,6 +93,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideUp();
                         $('#express_checkout_shortcut').slideDown();
                         $('#in_context_checkout').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         break;
                     case PayPal_PPP:
                         $('#standard-credentials').slideUp();
@@ -98,6 +105,21 @@ $(document).ready(function () {
                         $('#paypal-signup-button-u1').hide();
                         $('#paypal-signup-content-u1').hide();
                         $('#paypalplus-credentials').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
+                        break;
+                    case PayPal_PVZ:
+                        $('.toolbox').slideUp();
+                        $('#paypalplus-credentials').slideUp();
+                        $('#integral-credentials').slideUp();
+                        $('#standard-credentials').slideUp();
+                        $('#paypal-signup-button-u3').show();
+                        $('#paypal-signup-content-u3').show();
+                        $('#integral_evolution_solution').slideUp();
+                        $('#express_checkout_shortcut').slideUp();
+                        $('#in_context_checkout').slideUp();
+                        $('#braintree').show();
+                        $('#braintree-credentials').slideDown();
                         break;
                 }
                 break;
@@ -117,6 +139,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideUp();
                         $('#express_checkout_shortcut').slideDown();
                         $('#in_context_checkout').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         break;
                     case PayPal_HSS:
                         $('#signup').slideDown();
@@ -130,6 +154,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideDown();
                         $('label[for="paypal_payment_wpp"] .toolbox').slideDown();
                         $('#in_context_checkout').slideUp();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         switch (integral_evolution_solution)
                         {
                             case "1": //Iframe
@@ -149,6 +175,8 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideUp();
                         $('#express_checkout_shortcut').slideDown();
                         $('#in_context_checkout').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         break;
 
                     case PayPal_PPP:
@@ -160,7 +188,21 @@ $(document).ready(function () {
                         $('#paypal-signup-button-u1').hide();
                         $('#paypal-signup-content-u1').hide();
                         $('#paypalplus-credentials').slideDown();
+                        $('#braintree').hide();
+                        $('#braintree-credentials').slideUp();
                         break
+                    case PayPal_PVZ:
+                        $('#signup').slideUp();
+                        $('#paypalplus-credentials').slideUp();
+                        $('#integral-credentials').slideUp();
+                        $('#standard-credentials').slideUp();
+                        $('#paypal-signup-button-u6').show();
+                        $('#integral_evolution_solution').slideUp();
+                        $('#express_checkout_shortcut').hide();
+                        $('#in_context_checkout').slideUp();
+                        $('#braintree').show();
+                        $('#braintree-credentials').slideDown();
+                        break;
                 }
                 break;
         }
@@ -182,7 +224,11 @@ $(document).ready(function () {
         var paypal_business = $('input[name="business"]:checked').val();
         var paypal_payment_method = $('input[name="paypal_payment_method"]:checked').val();
 
-        if (paypal_payment_method != PayPal_HSS &&
+        if(paypal_payment_method == PayPal_PVZ)
+        {
+// c'est quoi cette fonction !!!
+        }
+        else if (paypal_payment_method != PayPal_HSS &&
                 ($('input[name="api_username"]').val().length > 0 ||
                         $('input[name="api_password"]').val().length > 0 ||
                         $('input[name="api_signature"]').val().length > 0)) {
@@ -271,6 +317,7 @@ $(document).ready(function () {
                             (($('input[name="client_id"]').val().length <= 0) ||
                                     ($('input[name="secret"]').val().length <= 0)))) {
                 $.fancybox({'content': $('<div id="js-paypal-save-failure">').append($('#js-paypal-save-failure').clone().html())});
+
                 return false;
             }
             return true;
@@ -299,7 +346,10 @@ $(document).ready(function () {
         if ($('#paypal-save-success').length > 0)
             $.fancybox({'hideOnOverlayClick': true, 'content': $('<div id="paypal-save-success">').append($('#paypal-save-success').clone().html())});
         else if ($('#paypal-save-failure').length > 0)
+        {
             $.fancybox({'hideOnOverlayClick': true, 'content': $('<div id="paypal-save-failure">').append($('#paypal-save-failure').clone().html())});
+
+        }
 
         $('#paypal-get-identification').live('click', function () {
 

@@ -134,23 +134,37 @@
 							{* WEBSITE PAYMENT PRO *}
 							<br />
 							<label for="paypal_payment_wpp">
-                                                            <input type="radio" name="paypal_payment_method" id="paypal_payment_wpp" value='{$PayPal_HSS|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_HSS}checked="checked"{/if} />
-                                                            {l s='Choose' mod='paypal'} {l s='Website Payments Pro' mod='paypal'}<br />
-                                                            <span class="description">{l s='A professional platform to accept payments through credit cards and PayPal account, covered by seller protection.' mod='paypal'}<br />{l s='Customized payments pages. Monthly subscription of 25€.' mod='paypal'}</span>
-                                                            <p class="toolbox">{l s='Click on the SAVE button only when PayPal has approved your subscription for this product. This process can take up to 3-5 days.' mod='paypal'}</p>
+								<input type="radio" name="paypal_payment_method" id="paypal_payment_wpp" value='{$PayPal_HSS|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_HSS}checked="checked"{/if} />
+								{l s='Choose' mod='paypal'} {l s='Website Payments Pro' mod='paypal'}<br />
+								<span class="description">{l s='A professional platform to accept payments through credit cards and PayPal account, covered by seller protection.' mod='paypal'}<br />{l s='Customized payments pages. Monthly subscription of 25€.' mod='paypal'}</span>
+								<p class="toolbox">{l s='Click on the SAVE button only when PayPal has approved your subscription for this product. This process can take up to 3-5 days.' mod='paypal'}</p>
 							</label>
 						{/if}
                         <div class="clear"></div>
                         {if (in_array($PayPal_PPP, $PayPal_allowed_methods))}
-                                {* WEBSITE PAYMENT PLUS *}
-                                <br />
-                                <label for="paypal_payment_ppp">
-                                    <input type="radio" name="paypal_payment_method" id="paypal_payment_ppp" value='{$PayPal_PPP|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_PPP}checked="checked"{/if} />
-                                    {l s='Choose' mod='paypal'} {l s='PayPal Plus' mod='paypal'}<br />
-                                    <span class="description"></span>
-                                    <p class="toolbox"></p>
-                                </label>
-                        {/if}
+							{* WEBSITE PAYMENT PLUS *}
+							<br />
+							<label for="paypal_payment_ppp">
+								<input type="radio" name="paypal_payment_method" id="paypal_payment_ppp" value='{$PayPal_PPP|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_PPP}checked="checked"{/if} />
+								{l s='Choose' mod='paypal'} {l s='PayPal Plus' mod='paypal'}<br />
+								<span class="description"></span>
+								<p class="toolbox"></p>
+							</label>
+						{/if}
+						{if (in_array($PayPal_PVZ, $PayPal_allowed_methods))}
+							{if version_compare($smarty.const.PHP_VERSION, '5.4.0', '<')}
+								{l s="You can't use braintree because your PHP version is too old (PHP 5.4 min)" mod="paypal"}
+							{else}
+							{* WEBSITE PAYMENT PLUS *}
+								<br />
+								<label for="paypal_payment_pvz">
+									<input type="radio" name="paypal_payment_method" id="paypal_payment_pvz" value='{$PayPal_PVZ|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_PVZ}checked="checked"{/if} />
+									{l s='Choose' mod='paypal'} {l s='Braintree' mod='paypal'}<br />
+									<span class="description"></span>
+									<p class="toolbox"></p>
+								</label>
+							{/if}
+						{/if}
 					</div>
 				{/if}
 				<div class="clear"></div>
@@ -237,7 +251,22 @@
 						<span class="description">{l s='Please check once more that you pasted all the characters.' mod='paypal'}</span>
 					</div>
 
-									<div id="paypalplus-credentials">
+					<div id="braintree-credentials" class="paypal-hide">
+						<h4>{l s='Thank you to configure your merchants by currency. Careful if you do not configure a merchant currency, the customer will pay in the currency of the currency by default, a conversion will take place' mod='paypal'}</h4>
+
+						<dl>
+							<dt><label for="braintree_public_key">{l s='Public Key' mod='paypal'} : </label></dt>
+							<dd><input type='text' name="braintree_public_key" id="braintree_public_key" value="{$PayPal_braintree_public_key|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
+							<dt><label for="braintree_private_key">{l s='Private Key' mod='paypal'} : </label></dt>
+							<dd><input type='password' size="85" name="braintree_private_key" id="braintree_private_key" value="{$PayPal_braintree_private_key|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
+							<dt><label for="braintree_merchant_id">{l s='Merchant ID' mod='paypal'} : </label></dt>
+							<dd><input type='text' size="85" name="braintree_merchant_id" id="braintree_merchant_id" value="{$PayPal_braintree_merchant_id|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
+						</dl>
+						<div class="clear"></div>
+						<span class="description">{l s='Please check once more that you pasted all the characters.' mod='paypal'}</span>
+					</div>
+
+					<div id="paypalplus-credentials">
 						<h4>{l s='Provide your PayPal API credentials to PrestaShop' mod='paypal'}</h4>
 
 						<br />
@@ -247,14 +276,24 @@
 							<dd><input type='text' name="client_id" id="client_id" value="{$PayPal_plus_client|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
 							<dt><label for="secret">{l s='Secret' mod='paypal'} : </label></dt>
 							<dd><input type='password' size="85" name="secret" id="secret" value="{$PayPal_plus_secret|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
-                                                        <dt><label for="webprofile">{l s='Use personnalisation (uses your logo and your shop name on Paypal) :' mod='paypal'}</label></dt>
-                                                        <dd>
-                                                            <input type="radio" name="paypalplus_webprofile" value="1" id="paypal_plus_webprofile_yes" {if $PayPal_plus_webprofile}checked="checked"{/if} /> <label for="paypal_plus_webprofile_yes">{l s='Yes' mod='paypal'}</label><br />
-                                                            <input type="radio" name="paypalplus_webprofile"  value="0" id="paypal_plus_webprofile_no" {if $PayPal_plus_webprofile == '0'}checked="checked"{/if} /> <label for="paypal_plus_webprofile_no">{l s='No' mod='paypal'}</label>
-                                                        </dd>
-                                                </dl>            
+							<dt><label for="webprofile">{l s='Use personnalisation (uses your logo and your shop name on Paypal) :' mod='paypal'}</label></dt>
+							<dd>
+								<input type="radio" name="paypalplus_webprofile" value="1" id="paypal_plus_webprofile_yes" {if $PayPal_plus_webprofile}checked="checked"{/if} /> <label for="paypal_plus_webprofile_yes">{l s='Yes' mod='paypal'}</label><br />
+								<input type="radio" name="paypalplus_webprofile"  value="0" id="paypal_plus_webprofile_no" {if $PayPal_plus_webprofile == '0'}checked="checked"{/if} /> <label for="paypal_plus_webprofile_no">{l s='No' mod='paypal'}</label>
+							</dd>
+						</dl>
 						<div class="clear"></div>
-					</div>                                
+					</div>
+
+					<div class="paypal-hide" id="braintree">
+						<dl>
+
+						{foreach from=$Currencies item=currency}
+							<dt><label for="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}">{$currency.name|escape:'html':'UTF-8'} ({$currency.sign|escape:'html':'UTF-8'}) {l s='Merchant account' mod='paypal'} {if $Currency_default == $currency.id_currency}(*)<br/> <span class="description">{l s='Mandatory because default currency' mod='paypal'}</span>{/if}</label></dt>
+							<dd><input type='text' name="account_braintree[{$currency.iso_code|escape:'html':'UTF-8'}]" id="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}" value="{$PayPal_account_braintree.{$currency.iso_code}|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
+						{/foreach}
+						</dl>
+					</div>
 									
 					<div id="integral-credentials" class="paypal-hide">
 						<h4>{l s='Indicate the email you used when you signed up for a PayPal Business account' mod='paypal'}</h4>
