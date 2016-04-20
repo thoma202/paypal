@@ -69,7 +69,7 @@ class TLSVerificator
     /************************************************************/
     /********************** CONNECT METHODS *********************/
     /************************************************************/
-    private function _connectByCURL($url, $http_header = false, $sslversion = 1)
+    private function _connectByCURL($url, $http_header = false)
     {
         $ch = @curl_init();
 
@@ -87,7 +87,6 @@ class TLSVerificator
             @curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             @curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
             @curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-            @curl_setopt($ch, CURLOPT_SSLVERSION, $sslversion);
             @curl_setopt($ch, CURLOPT_VERBOSE, false);
             if ($http_header) {
                 @curl_setopt($ch, CURLOPT_HTTPHEADER, $http_header);

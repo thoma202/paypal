@@ -28,7 +28,7 @@
 <div class="row braintree-row-payment">
 	<div class="col-xs-12">
 		<p class="payment_module">
-			<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post" onsubmit="check3DSecure()">
+			<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
 				<label for="card-number">Card Number</label>
 				<div id="card-number"></div>
 
@@ -39,9 +39,12 @@
 				<div id="expiration-date"></div>
 				<input type="hidden" name="deviceData" class="deviceData"/>
 				<input type="hidden" name="client_token" value="{$braintreeToken}">
-				<input type="submit" value="{l s='Pay' mod='paypal'}"  id="braintree_submit"/>
+				<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
+				<input type="hidden" name="liabilityShiftPossible" id="liabilityShiftPossible"/>
+				<input type="hidden" name="payment_method_nonce" id="payment_method_nonce"/>
+
+			<input type="submit" value="{l s='Pay' mod='paypal'}"  id="braintree_submit"/>
 			</form>
-		<button onclick="check3DSecure()">test</button>
 		</p>
 	</div>
 </div>
@@ -67,24 +70,25 @@
 				$('.deviceData').val(braintreeInstance.deviceData);
 			},
 			onPaymentMethodReceived: function (obj) {
+
 				if (obj.type == 'CreditCard') {
-					var client = new braintree.api.Client({clientToken: "CLIENT-TOKEN-FROM-SERVER"});
+
+					var client = new braintree.api.Client({clientToken: "{/literal}{$braintreeToken}{literal}"});
 					client.verify3DS({
-								amount: 10.00,
+								amount: {/literal}{$braintreeAmount}{literal},
 								creditCard: obj.nonce
 							},
 							function (error, response) {
 								if (!error) {
-									alert(response.verificationDetails.liabilityShifted);
-									var liabilityShifted = response.verificationDetails.liabilityShifted
-									var liabilityShiftPossible = response.verificationDetails.liabilityShiftPossible
-									// check liability shift status and post nonce to server
+									$('#payment_method_nonce').val(response.nonce);
+									$('#liabilityShifted').val(response.verificationDetails.liabilityShifted);
+									$('#liabilityShiftPossible').val(response.verificationDetails.liabilityShiftPossible);
 								}
-								Form.submit
+								$('#braintree-form').submit();
 							});
 				}
 				else {
-					Form.submit
+					$('#braintree-form').submit();
 				}
 			}
 		});
@@ -92,19 +96,6 @@
 		var client = new braintree.api.Client({
 			clientToken: "{/literal}{$braintreeToken}{literal}"
 		});
-
-		function check3DSecure()
-		{
-			client.verify3DS({
-				amount: {/literal}{$braintreeAmount}{literal},
-				clientToken: "{/literal}{$braintreeToken}{literal}"
-			}, function (error, response) {
-				console.debug(error);
-				alert(error.message);
-				alert(response);
-			});
-			return false;
-		}
 
 	</script>
 {/literal}

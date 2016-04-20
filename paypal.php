@@ -142,15 +142,18 @@ class PayPal extends PaymentModule
             || !$this->registerHook('rightColumn') ||
             !$this->registerHook('cancelProduct') || !$this->registerHook('productFooter')
             || !$this->registerHook('header') ||
-            !$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader')
-            || !$this->registerHook('displayOrderConfirmation')) {
+            !$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader')) {
             return false;
         }
 
         if ((_PS_VERSION_ >= '1.5') && (!$this->registerHook('displayMobileHeader')
-            ||
-            !$this->registerHook('displayMobileShoppingCartTop') || !$this->registerHook('displayMobileAddToCartTop')
-            || !$this->registerHook('displayPaymentEU') || !$this->registerHook('actionPSCleanerGetModulesTables'))) {
+            || !$this->registerHook('displayMobileShoppingCartTop')
+            || !$this->registerHook('displayMobileAddToCartTop')
+            || !$this->registerHook('displayPaymentEU')
+            || !$this->registerHook('actionPSCleanerGetModulesTables')
+            || !$this->registerHook('actionOrderStatusPostUpdate')
+            || !$this->registerHook('displayOrderConfirmation')
+            )) {
             return false;
         }
 
@@ -640,6 +643,21 @@ class PayPal extends PaymentModule
         return $content.$this->renderExpressCheckoutForm('product');
     }
 
+    public function hookActionOrderStatusPostUpdate($params)
+    {
+        if($params['newOrderStatus']->id == Configuration::get('PS_OS_CANCELED'))
+        {
+            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.$params['id_order']);
+
+            if($transction_id)
+            {
+                include_once _PS_MODULE_DIR_.'paypal/classes/Braintree.php';
+                $braintree = new PrestaBraintree();
+                $braintree->void($transction_id);
+            }
+        }
+    }
+    
     public function hookPayment($params)
     {
 
@@ -1353,7 +1371,7 @@ class PayPal extends PaymentModule
             FROM `'._DB_PREFIX_.'paypal_braintree`
             WHERE `id_order` = '.(int) $id_order);
 
-        return ($paypal_order && ($paypal_order['payment_status'] == 'Completed' || $paypal_order['payment_status'] == 'approved') && $paypal_order['capture'] == 0) || $braintree_order;
+        return ($paypal_order && ($paypal_order['payment_status'] == 'Completed' || $paypal_order['payment_status'] == 'approved') && $paypal_order['capture'] == 0);
     }
 
     private function _needValidation($id_order)
@@ -1382,8 +1400,7 @@ class PayPal extends PaymentModule
             FROM `'._DB_PREFIX_.'paypal_order`
             WHERE `id_order` = '.(int) $id_order.' AND `capture` = 1');
 
-        return $result && $result['payment_method'] != HSS && $result['payment_status']
-            == 'Pending_capture';
+        return $result && ($result['payment_method'] != HSS && $result['payment_status'] == 'Pending_capture' || $result['payment_method'] == PVZ && $result['payment_status'] == 'authorized');
     }
 
     private function _preProcess()
@@ -1597,17 +1614,10 @@ class PayPal extends PaymentModule
     private function _doTotalRefund($id_order)
     {
         $paypal_order = PayPalOrder::getOrderById((int) $id_order);
-        $braintree_order = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.$id_order);
-        if (!$this->isPayPalAPIAvailable() || (!$paypal_order && !$braintree_order)) {
+        if (!$this->isPayPalAPIAvailable() || !$paypal_order ) {
             return false;
         }
-
-        $method = 'other';
-        if(empty($paypal_order['id_transaction']) && !empty($braintree_order))
-        {
-            $method = 'braintree';
-            $paypal_order['id_transaction'] = $braintree_order;
-        }
+        
 
 
         $order = new Order((int) $id_order);
@@ -1689,64 +1699,115 @@ class PayPal extends PaymentModule
             $capture_amount = (float) $order->total_paid;
         }
 
-        $complete = 'Complete';
-        if (!$is_complete) {
-            $complete = 'NotComplete';
-        }
+        $sql = 'SELECT transaction
+FROM '._DB_PREFIX_.'paypal_braintree
+WHERE id_order = '.$id_order;
 
-        $paypal_lib = new PaypalLib();
-        $response = $paypal_lib->makeCall(
-            $this->getAPIURL(),
-            $this->getAPIScript(),
-            'DoCapture',
-            '&'.http_build_query(array('AMT' => $capture_amount, 'AUTHORIZATIONID' => $paypal_order['id_transaction'], 'CURRENCYCODE' => $currency->iso_code, 'COMPLETETYPE' => $complete), '', '&')
-        );
-        $message = $this->l('Capture operation result:').'<br>';
+        $transaction_braintree = Db::getInstance()->getValue($sql);
 
-        foreach ($response as $key => $value) {
-            $message .= $key.': '.$value.'<br>';
-        }
-
-        $capture = new PaypalCapture();
-        $capture->id_order = (int) $id_order;
-        $capture->capture_amount = (float) $capture_amount;
-
-        if ((array_key_exists('ACK', $response)) && ($response['ACK'] == 'Success')
-            && ($response['PAYMENTSTATUS'] == 'Completed')) {
-            $capture->result = pSQL($response['PAYMENTSTATUS']);
-            if ($capture->save()) {
-                if (!($capture->getRestToCapture($capture->id_order))) {
-                    //plus d'argent a capturer
-                    if (!Db::getInstance()->Execute(
-                        'UPDATE `'._DB_PREFIX_.'paypal_order`
-                        SET `capture` = 0, `payment_status` = \''.pSQL($response['PAYMENTSTATUS']).'\', `id_transaction` = \''.pSQL($response['TRANSACTIONID']).'\'
-                        WHERE `id_order` = '.(int) $id_order
-                    )
-                    ) {
-                        die(Tools::displayError('Error when updating PayPal database'));
-                    }
-
-                    $order_history = new OrderHistory();
-                    $order_history->id_order = (int) $id_order;
-
-                    if (version_compare(_PS_VERSION_, '1.5', '<')) {
-                        $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int) $id_order);
-                    } else {
-                        $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
-                    }
-
-                    $order_history->addWithemail();
-                    $message .= $this->l('Order finished with PayPal!');
-                }
+        if($transaction_braintree)
+        {
+            include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
+            $braintree = new PrestaBraintree();
+            $result_transaction = $braintree->submitForSettlement($transaction_braintree,$amount);
+            if(!$result_transaction)
+            {
+                return false;
             }
-        } elseif (isset($response['PAYMENTSTATUS'])) {
-            $capture->result = pSQL($response['PAYMENTSTATUS']);
-            $capture->save();
-            $message .= $this->l('Transaction error!');
+
+            $captureBraintree = new PaypalCapture();
+            $captureBraintree->id_order = (int)$id_order;
+            $captureBraintree->capture_amount = (float)$capture_amount;
+            $captureBraintree->result = 'Completed';
+            $captureBraintree->save();
+
+
+            if (!($captureBraintree->getRestToCapture($captureBraintree->id_order))) {
+                //plus d'argent a capturer
+                if (!Db::getInstance()->Execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'paypal_order`
+                        SET `capture` = 0, `payment_status` = \'Completed\'
+                        WHERE `id_order` = ' . (int)$id_order
+                )
+                ) {
+                    die(Tools::displayError('Error when updating PayPal database'));
+                }
+
+                $order_history = new OrderHistory();
+                $order_history->id_order = (int)$id_order;
+
+                if (version_compare(_PS_VERSION_, '1.5', '<')) {
+                    $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int)$id_order);
+                } else {
+                    $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
+                }
+
+                $order_history->addWithemail();
+                $message .= $this->l('Order finished with PayPal!');
+            }
+
         }
+        else
+        {
+            $complete = 'Complete';
+            if (!$is_complete) {
+                $complete = 'NotComplete';
+            }
 
-        $this->_addNewPrivateMessage((int) $id_order, $message);
+            $paypal_lib = new PaypalLib();
+            $response = $paypal_lib->makeCall(
+                $this->getAPIURL(),
+                $this->getAPIScript(),
+                'DoCapture',
+                '&' . http_build_query(array('AMT' => $capture_amount, 'AUTHORIZATIONID' => $paypal_order['id_transaction'], 'CURRENCYCODE' => $currency->iso_code, 'COMPLETETYPE' => $complete), '', '&')
+            );
+            $message = $this->l('Capture operation result:') . '<br>';
 
+            foreach ($response as $key => $value) {
+                $message .= $key . ': ' . $value . '<br>';
+            }
+
+            $capture = new PaypalCapture();
+            $capture->id_order = (int)$id_order;
+            $capture->capture_amount = (float)$capture_amount;
+
+            if ((array_key_exists('ACK', $response)) && ($response['ACK'] == 'Success')
+                && ($response['PAYMENTSTATUS'] == 'Completed')
+            ) {
+                $capture->result = pSQL($response['PAYMENTSTATUS']);
+                if ($capture->save()) {
+                    if (!($capture->getRestToCapture($capture->id_order))) {
+                        //plus d'argent a capturer
+                        if (!Db::getInstance()->Execute(
+                            'UPDATE `' . _DB_PREFIX_ . 'paypal_order`
+                        SET `capture` = 0, `payment_status` = \'' . pSQL($response['PAYMENTSTATUS']) . '\', `id_transaction` = \'' . pSQL($response['TRANSACTIONID']) . '\'
+                        WHERE `id_order` = ' . (int)$id_order
+                        )
+                        ) {
+                            die(Tools::displayError('Error when updating PayPal database'));
+                        }
+
+                        $order_history = new OrderHistory();
+                        $order_history->id_order = (int)$id_order;
+
+                        if (version_compare(_PS_VERSION_, '1.5', '<')) {
+                            $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int)$id_order);
+                        } else {
+                            $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
+                        }
+
+                        $order_history->addWithemail();
+                        $message .= $this->l('Order finished with PayPal!');
+                    }
+                }
+            } elseif (isset($response['PAYMENTSTATUS'])) {
+                $capture->result = pSQL($response['PAYMENTSTATUS']);
+                $capture->save();
+                $message .= $this->l('Transaction error!');
+            }
+
+            $this->_addNewPrivateMessage((int)$id_order, $message);
+        }
         Tools::redirect($_SERVER['HTTP_REFERER']);
     }
 

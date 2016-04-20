@@ -46,8 +46,14 @@ function upgrade_module_future($object, $install = false)
 				) ENGINE='._MYSQL_ENGINE_.'  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;')) {
             return false;
         }
+        if (_PS_VERSION_ >= '1.5')
+        {
+            $object->registerHook('actionOrderStatusPostUpdate');
+            $object->registerHook('displayOrderConfirmation');
+        }
 
         Configuration::updateValue('PAYPAL_VERSION', '3.9.0');
+
     }
 }
 
