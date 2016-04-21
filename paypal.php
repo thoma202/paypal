@@ -1543,7 +1543,8 @@ class PayPal extends PaymentModule
 
             include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
             $braintree = new PrestaBraintree();
-            return $braintree->refund($id_transaction,$amt);
+            $result = $braintree->refund($id_transaction,$amt);
+            return $result;
         } elseif ($payment_method != PPP) {
 
             if (!$amt) {
@@ -1617,8 +1618,6 @@ class PayPal extends PaymentModule
         if (!$this->isPayPalAPIAvailable() || !$paypal_order ) {
             return false;
         }
-        
-
 
         $order = new Order((int) $id_order);
         if (!Validate::isLoadedObject($order)) {
@@ -1661,13 +1660,10 @@ class PayPal extends PaymentModule
                 $message .= $key.': '.$value." \r\n";
             }
         }
-        if ((array_key_exists('ACK', $response) && $response['ACK'] == 'Success' && $response['REFUNDTRANSACTIONID'] != '') || (isset($response->state) && $response->state == 'completed') || ($method == 'braintree' && $response)) {
+        if ((array_key_exists('ACK', $response) && $response['ACK'] == 'Success' && $response['REFUNDTRANSACTIONID'] != '') || (isset($response->state) && $response->state == 'completed') || (Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ && $response)) {
             $message .= $this->l('PayPal refund successful!');
-            if($method == 'other')
-            {
-                if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int) $id_order)) {
-                    die(Tools::displayError('Error when updating PayPal database'));
-                }
+            if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int) $id_order)) {
+                die(Tools::displayError('Error when updating PayPal database'));
             }
 
 

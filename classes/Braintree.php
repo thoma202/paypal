@@ -84,7 +84,6 @@ class PrestaBraintree{
                 ]
             ];
             $result = Braintree_Transaction::sale($data);
-            $this->log($result,'sale');
             if(($result instanceof Braintree_Result_Successful) && $result->success)
             {
                 return $result->transaction;
@@ -162,7 +161,6 @@ WHERE id_cart = '.$id_cart;
         $this->initConfig();
         try{
             $result = Braintree_Transaction::refund($transactionId,$amount);
-            $this->log($result,'refund');
             if($result->success)
             {
                 return true;
@@ -193,7 +191,6 @@ WHERE id_cart = '.$id_cart;
         $this->initConfig();
         try{
             $result = Braintree_Transaction::submitForSettlement($transaction_id,$amount);
-            $this->log($result,'submitForSettlement');
             if($result instanceof Braintree_Result_Successful && $result->success)
             {
                 return true;
@@ -231,10 +228,5 @@ WHERE id_cart = '.$id_cart;
             PrestaShopLogger::addLog($e->getCode().'=>'.$e->getMessage());
             return false;
         }
-    }
-
-    private function log($result,$method)
-    {
-        file_put_contents(_PS_MODULE_DIR_.'paypal/braintree_'.$method.'.log',date('Y-m-d H:i:s').' '.var_export($result,true).PHP_EOL,FILE_APPEND);
     }
 }
