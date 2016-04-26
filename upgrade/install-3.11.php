@@ -28,7 +28,7 @@ if (!defined('_PS_VERSION_')) {
     exit;
 }
 
-function upgrade_module_future($object, $install = false)
+function upgrade_module_3_11($object, $install = false)
 {
     $paypal_version = Configuration::get('PAYPAL_VERSION');
 
@@ -52,7 +52,7 @@ function upgrade_module_future($object, $install = false)
             $object->registerHook('displayOrderConfirmation');
         }
 
-        Configuration::updateValue('PAYPAL_VERSION', '3.9.0');
+        Configuration::updateValue('PAYPAL_VERSION', '3.11.0');
 
     }
 }
