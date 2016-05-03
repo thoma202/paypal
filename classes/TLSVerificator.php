@@ -51,7 +51,15 @@ class TLSVerificator
 
     public function makeCheck()
     {
-        $tls_check = $this->_connectByCURL($this->url, false, 1);
+
+        if (false && function_exists('curl_exec')) {
+            $tls_check = $this->_connectByCURL($this->url);
+        }
+        else
+        {
+            $tls_check = file_get_contents($this->url);
+        }
+
         if ($tls_check == false) {
             $this->tls_version = false; // Not detectable
             return false;

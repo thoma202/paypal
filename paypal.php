@@ -82,7 +82,7 @@ class PayPal extends PaymentModule
     public $iso_code;
     public $default_country;
     public $paypal_logos;
-    public $module_key = '646dcec2b7ca20c4e9a5aebbbad98d7e';
+    public $module_key = '336225a5988ad434b782f2d868d7bfcd';
 
     const BACKWARD_REQUIREMENT = '0.4';
     const ONLY_PRODUCTS = 1;
@@ -417,6 +417,7 @@ class PayPal extends PaymentModule
             'PayPal_braintree_private_key'=> Configuration::get('PAYPAL_BRAINTREE_PRIVATE_KEY'),
             'PayPal_braintree_merchant_id'=> Configuration::get('PAYPAL_BRAINTREE_MERCHANT_ID'),
         ));
+
         $this->getTranslations();
 
         $output = $this->fetchTemplate('/views/templates/admin/back_office.tpl');
@@ -660,7 +661,6 @@ class PayPal extends PaymentModule
     
     public function hookPayment($params)
     {
-
         if (!$this->canBeUsed()) {
             return;
         }
@@ -1615,7 +1615,7 @@ class PayPal extends PaymentModule
     private function _doTotalRefund($id_order)
     {
         $paypal_order = PayPalOrder::getOrderById((int) $id_order);
-        if (!$this->isPayPalAPIAvailable() || !$paypal_order ) {
+        if (!$this->isPayPalAPIAvailable() || !$paypal_order) {
             return false;
         }
 
@@ -1665,7 +1665,6 @@ class PayPal extends PaymentModule
             if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int) $id_order)) {
                 die(Tools::displayError('Error when updating PayPal database'));
             }
-
 
             $history = new OrderHistory();
             $history->id_order = (int) $id_order;
@@ -1944,6 +1943,7 @@ WHERE id_order = '.$id_order;
             $country = new Country($this->default_country);
             $this->iso_code = Tools::strtoupper($country->iso_code);
         }
+
         //$this->iso_code = AuthenticatePaymentMethods::getCountryDependency($iso_code);
     }
 
