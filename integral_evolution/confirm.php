@@ -25,7 +25,7 @@
  */
 
 include_once dirname(__FILE__).'/../../../config/config.inc.php';
-include_once _PS_ROOT_DIR_.'init.php';
+include_once _PS_ROOT_DIR_.'/init.php';
 
 
 if ($id_cart = Tools::getValue('id_cart')) {
