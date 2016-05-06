@@ -77,6 +77,16 @@
 				//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
 				$('.deviceData').val(braintreeInstance.deviceData);
 			},
+			onError : function(error) {
+				$.fancybox.open([
+					{
+						type: 'inline',
+						autoScale: true,
+						minHeight: 30,
+						content: '<p class="braintree-error">' + error.message + '</p>'
+					}
+				]);
+			},
 			onPaymentMethodReceived: function (obj) {
 				if (obj.type == 'CreditCard') {
 
@@ -86,7 +96,6 @@
 								creditCard: obj.nonce
 							},
 							function (error, response) {
-								alert(error.message);
 								if (!error) {
 									$('#payment_method_nonce').val(response.nonce);
 									$('#liabilityShifted').val(response.verificationDetails.liabilityShifted);
@@ -94,7 +103,6 @@
 								}
 								else
 								{
-									alert(error.message);
 									$.fancybox.open([
 										{
 											type: 'inline',
@@ -102,9 +110,7 @@
 											minHeight: 30,
 											content: '<p class="braintree-error">' + error.message + '</p>'
 										}
-									], {
-										padding: 0
-									});
+									]);
 								}
 								$('#braintree-form').submit();
 							});

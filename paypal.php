@@ -850,7 +850,8 @@ class PayPal extends PaymentModule
             || (((int) Configuration::get('PAYPAL_PAYMENT_METHOD') == HSS) && !$this->context->getMobileDevice())
             || !Configuration::get('PAYPAL_EXPRESS_CHECKOUT_SHORTCUT')
             || !in_array(ECS, $this->getPaymentMethods())
-            || isset($this->context->cookie->express_checkout)) {
+            || isset($this->context->cookie->express_checkout)
+            || Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ) {
             return null;
         }
 
