@@ -29,14 +29,22 @@
 	<div class="col-xs-12">
 		<p class="payment_module">
 			<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
-				<label for="card-number">Card Number</label>
-				<div id="card-number"></div>
+				<div id="block-card-number">
+					<label for="card-number">Card Number</label>
+					<div id="card-number"></div>
+				</div>
 
-				<label for="cvv">CVV</label>
-				<div id="cvv"></div>
+				<div id="block-cvv">
+					<label for="cvv">CVV</label>
+					<div id="cvv"></div>
+				</div>
 
-				<label for="expiration-date">Expiration Date</label>
-				<div id="expiration-date"></div>
+				<div id="block-expiration-date">
+					<label for="expiration-date">Expiration Date</label>
+					<div id="expiration-date"></div>
+				</div>
+
+
 				<input type="hidden" name="deviceData" class="deviceData"/>
 				<input type="hidden" name="client_token" value="{$braintreeToken}">
 				<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
@@ -70,7 +78,6 @@
 				$('.deviceData').val(braintreeInstance.deviceData);
 			},
 			onPaymentMethodReceived: function (obj) {
-
 				if (obj.type == 'CreditCard') {
 
 					var client = new braintree.api.Client({clientToken: "{/literal}{$braintreeToken}{literal}"});
@@ -79,10 +86,25 @@
 								creditCard: obj.nonce
 							},
 							function (error, response) {
+								alert(error.message);
 								if (!error) {
 									$('#payment_method_nonce').val(response.nonce);
 									$('#liabilityShifted').val(response.verificationDetails.liabilityShifted);
 									$('#liabilityShiftPossible').val(response.verificationDetails.liabilityShiftPossible);
+								}
+								else
+								{
+									alert(error.message);
+									$.fancybox.open([
+										{
+											type: 'inline',
+											autoScale: true,
+											minHeight: 30,
+											content: '<p class="braintree-error">' + error.message + '</p>'
+										}
+									], {
+										padding: 0
+									});
 								}
 								$('#braintree-form').submit();
 							});

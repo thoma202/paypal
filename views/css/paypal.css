@@ -133,3 +133,41 @@ label span.description{display:block;padding-left:16px}
   border-radius: 4px;
   margin:0px;
 }
+
+.braintree-row-payment #block-card-number{
+  width: 250px;
+  float: left;
+}
+.braintree-row-payment #block-card-number #card-number {
+  width : 200px;
+  height : 30px;
+  padding : 5px;
+  margin : 0px;
+  border: solid 1px #C6C4C4;
+}
+
+.braintree-row-payment #block-cvv{
+  width: 100px;
+  float: left;
+}
+.braintree-row-payment #block-cvv #cvv {
+  width : 75px;
+  height : 30px;
+  padding : 5px;
+  margin : 0px;
+  border: solid 1px #C6C4C4;
+}
+
+.braintree-row-payment #block-expiration-date{
+  width: 100px;
+  float: left;
+}
+.braintree-row-payment #block-expiration-date #expiration-date {
+  width : 75px;
+  height : 30px;
+  padding : 5px;
+  border: solid 1px #C6C4C4;
+}
+.braintree-row-payment #braintree_submit{
+  margin-top: 20px;
+}
