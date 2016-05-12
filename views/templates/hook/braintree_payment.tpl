@@ -45,7 +45,7 @@
 				</div>
 
 
-				<input type="hidden" name="deviceData" class="deviceData"/>
+				<input type="hidden" name="deviceData" id="deviceData"/>
 				<input type="hidden" name="client_token" value="{$braintreeToken}">
 				<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
 				<input type="hidden" name="liabilityShiftPossible" id="liabilityShiftPossible"/>
@@ -58,7 +58,7 @@
 </div>
 
 {literal}
-	<script src="https://js.braintreegateway.com/js/braintree-2.22.2.min.js"></script>
+	<script src="https://js.braintreegateway.com/js/braintree-2.24.0.min.js"></script>
 	<script type="text/javascript">
 		braintree.setup("{/literal}{$braintreeToken}{literal}", "custom", {
 			id: "braintree-form",
@@ -73,9 +73,13 @@
 					selector: "#expiration-date"
 				}
 			},
+			dataCollector: {
+				kount: {environment: {/literal}{if $sandbox_mode}'sandbox'{else}'production'{/if}{literal}}
+			},
 			onReady : function(braintreeInstance) {
 				//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
-				$('.deviceData').val(braintreeInstance.deviceData);
+				alert(braintreeInstance.deviceData);
+				$('#deviceData').val(braintreeInstance.deviceData);
 			},
 			onError : function(error) {
 				$.fancybox.open([
