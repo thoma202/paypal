@@ -43,11 +43,14 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
             $this->redirectFailedPayment();
         }
 
-        if(!Tools::getValue('liabilityShifted') && Tools::getValue('liabilityShiftPossible'))
+
+
+        if(Configuration::get('PAYPAL_USE_3D_SECURE') && !Tools::getValue('liabilityShifted') && Tools::getValue('liabilityShiftPossible'))
         {
             $paypal->reset_context();
             $this->redirectFailedPayment();
         }
+        
 
         $cart_status = $braintree->cartStatus($this->context->cart->id);
         switch($cart_status) {

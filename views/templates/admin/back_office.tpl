@@ -415,6 +415,12 @@
 					<input type="radio" name="payment_capture" id="paypal_direct_sale" value="0" {if $PayPal_payment_capture == 0}checked="checked"{/if} /> <label for="paypal_direct_sale">{l s='Direct sales (recommended)' mod='paypal'}</label><br />
 					<input type="radio" name="payment_capture" id="paypal_manual_capture" value="1" {if $PayPal_payment_capture == 1}checked="checked"{/if} /> <label for="paypal_manual_capture">{l s='Authorization/Manual capture (payment shipping)' mod='paypal'}</label>
 
+					<div id="paypal_3D_secure" style="display: none;">
+						<p>{l s='Enabled 3D secure ?' mod='paypal'}</p>
+						<input type="radio" name="check3Dsecure" id="paypal_3Dsecure_enabled" value="1" {if $PayPal_check3Dsecure == 1}checked="checked"{/if} /> <label for="paypal_3Dsecure_enabled">{l s='yes' mod='paypal'}</label><br />
+						<input type="radio" name="check3Dsecure" id="paypal_3Dsecure_disabled" value="0" {if $PayPal_check3Dsecure == 0}checked="checked"{/if} /> <label for="paypal_3Dsecure_disabled">{l s='no' mod='paypal'}</label>
+					</div>
+
 					<br /><br />
 				</div>
 

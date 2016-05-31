@@ -416,6 +416,7 @@ class PayPal extends PaymentModule
             'PayPal_braintree_public_key'=> Configuration::get('PAYPAL_BRAINTREE_PUBLIC_KEY'),
             'PayPal_braintree_private_key'=> Configuration::get('PAYPAL_BRAINTREE_PRIVATE_KEY'),
             'PayPal_braintree_merchant_id'=> Configuration::get('PAYPAL_BRAINTREE_MERCHANT_ID'),
+            'PayPal_check3Dsecure'=> Configuration::get('PAYPAL_USE_3D_SECURE'),
         ));
 
         $this->getTranslations();
@@ -717,6 +718,7 @@ class PayPal extends PaymentModule
                 'braintreeToken'=>$clientToken,
                 'braintreeSubmitUrl'=>$this->context->link->getModuleLink('paypal','braintreesubmit'),
                 'braintreeAmount'=>$this->context->cart->getOrderTotal(),
+                'check3Dsecure'=>Configuration::get('PAYPAL_USE_3D_SECURE'),
             ));
             return $this->fetchTemplate('braintree_payment.tpl');
 
@@ -1474,7 +1476,8 @@ class PayPal extends PaymentModule
                 Configuration::updateValue('PAYPAL_BRAINTREE_PUBLIC_KEY', Tools::getValue('braintree_public_key'));
                 Configuration::updateValue('PAYPAL_BRAINTREE_PRIVATE_KEY', Tools::getValue('braintree_private_key'));
                 Configuration::updateValue('PAYPAL_BRAINTREE_MERCHANT_ID', Tools::getValue('braintree_merchant_id'));
-
+                Configuration::updateValue('PAYPAL_USE_3D_SECURE',Tools::getValue('check3Dsecure'));
+                
                 /* USE PAYPAL PLUS */
                 if ((int) Tools::getValue('paypal_payment_method') == 5) {
                     Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));

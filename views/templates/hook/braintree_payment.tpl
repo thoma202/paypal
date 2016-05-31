@@ -29,21 +29,20 @@
 	<div class="col-xs-12">
 		<p class="payment_module">
 			<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
-				<div id="block-card-number">
-					<label for="card-number">Card Number</label>
-					<div id="card-number"></div>
+				<div id="block-card-number" class="block_field">
+					<label for="card-number">{l s="Card Number" mod="paypal"}</label>
+					<div id="card-number" class="hosted_field"></div>
 				</div>
 
-				<div id="block-cvv">
-					<label for="cvv">CVV</label>
-					<div id="cvv"></div>
+				<div id="block-expiration-date" class="block_field">
+					<label for="expiration-date">{l s="Expiration Date" mod="paypal"}</label>
+					<div id="expiration-date" class="hosted_field"></div>
 				</div>
 
-				<div id="block-expiration-date">
-					<label for="expiration-date">Expiration Date</label>
-					<div id="expiration-date"></div>
+				<div id="block-cvv" class="block_field">
+					<label for="cvv">{l s="Security Code" mod="paypal"}</label>
+					<div id="cvv" class="hosted_field"></div>
 				</div>
-
 
 				<input type="hidden" name="deviceData" id="deviceData"/>
 				<input type="hidden" name="client_token" value="{$braintreeToken}">
@@ -64,13 +63,23 @@
 			id: "braintree-form",
 			hostedFields: {
 				number: {
-					selector: "#card-number"
+					selector: "#card-number",
+					placeholder: '{/literal}{l s='Your number' mod='paypal'}{literal}'
 				},
 				cvv: {
-					selector: "#cvv"
+					selector: "#cvv",
+					placeholder: '{/literal}{l s='3 or 4 numbers' mod='paypal'}{literal}'
 				},
 				expirationDate: {
-					selector: "#expiration-date"
+					selector: "#expiration-date",
+					placeholder: '{/literal}{l s='Format MM/YY' mod='paypal'}{literal}'
+				},
+				styles: {
+					'input': {
+						'color': '#999999',
+						'font-size': '14px',
+						'font-family': 'PayPal Forward, sans-serif'
+					}
 				}
 			},
 			dataCollector: {
@@ -78,7 +87,6 @@
 			},
 			onReady : function(braintreeInstance) {
 				//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
-				alert(braintreeInstance.deviceData);
 				$('#deviceData').val(braintreeInstance.deviceData);
 			},
 			onError : function(error) {
@@ -91,6 +99,7 @@
 					}
 				]);
 			},
+			{/literal}{if $check3Dsecure}{literal}
 			onPaymentMethodReceived: function (obj) {
 				if (obj.type == 'CreditCard') {
 
@@ -123,6 +132,7 @@
 					$('#braintree-form').submit();
 				}
 			}
+		{/literal}{/if}{literal}
 		});
 
 		var client = new braintree.api.Client({
