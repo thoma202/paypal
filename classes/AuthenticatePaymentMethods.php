@@ -53,6 +53,7 @@ class AuthenticatePaymentMethods
             'TH' => array('TH'),
             'TR' => array('TR'),
             'TW' => array('TW'),
+            'US' => array('US'),
         );
 
         foreach ($localizations as $key => $value) {
@@ -95,6 +96,7 @@ class AuthenticatePaymentMethods
             'TH' => array(WPS, ECS),
             'TR' => array(WPS, ECS),
             'TW' => array(WPS, ECS),
+            'US' => array(PVZ),
         );
         $return = isset($payment_method[$iso_code]) ? $payment_method[$iso_code] : false;
         if(Configuration::get('VZERO_ENABLED'))
