@@ -63,7 +63,7 @@ class AuthenticatePaymentMethods
             'UA'=>array(WPS, ECS),
             'TR'=>array(WPS, ECS),
             'SI'=>array(WPS, ECS),
-            'GB'=>array(WPS, ECS),
+            'GB'=>array(WPS, HSS, ECS),
 
             //ASIE
             'CN'=>array(WPS, ECS),
