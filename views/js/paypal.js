@@ -33,12 +33,12 @@
 	                paypal.checkout.initXO();
 	                updateFormDatas();
 				    var str = '';
-					if($('#paypal_payment_form input[name="id_product"]').length > 0)
-						str += '&id_product='+$('#paypal_payment_form input[name="id_product"]').val();
-					if($('#paypal_payment_form input[name="quantity"]').length > 0)
-						str += '&quantity='+$('#paypal_payment_form input[name="quantity"]').val();
-					if($('#paypal_payment_form input[name="id_p_attr"]').length > 0)
-						str += '&id_p_attr='+$('#paypal_payment_form input[name="id_p_attr"]').val();
+					if($('.paypal_payment_form input[name="id_product"]').length > 0)
+						str += '&id_product='+$('.paypal_payment_form input[name="id_product"]').val();
+					if($('.paypal_payment_form input[name="quantity"]').length > 0)
+						str += '&quantity='+$('.paypal_payment_form input[name="quantity"]').val();
+					if($('.paypal_payment_form input[name="id_p_attr"]').length > 0)
+						str += '&id_p_attr='+$('.paypal_payment_form input[name="id_p_attr"]').val();
 
 	                $.support.cors = true;
 	                $.ajax({
@@ -72,8 +72,8 @@ function updateFormDatas()
 	var nb = $('#quantity_wanted').val();
 	var id = $('#idCombination').val();
 
-	$('#paypal_payment_form input[name=quantity]').val(nb);
-	$('#paypal_payment_form input[name=id_p_attr]').val(id);
+	$('.paypal_payment_form input[name=quantity]').val(nb);
+	$('.paypal_payment_form input[name=id_p_attr]').val(id);
 }
 	
 $(document).ready( function() {
@@ -81,7 +81,7 @@ $(document).ready( function() {
 	if($('#in_context_checkout_enabled').val() != 1)
 	{
 		$('#payment_paypal_express_checkout').click(function() {
-			$('#paypal_payment_form').submit();
+			$('#paypal_payment_form_cart').submit();
 			return false;
 		});
 	}
@@ -90,12 +90,12 @@ $(document).ready( function() {
 	var jquery_version = $.fn.jquery.split('.');
 	if(jquery_version[0]>=1 && jquery_version[1] >= 7)
 	{
-		$('body').on('submit',"#paypal_payment_form", function () {
+		$('body').on('submit',".paypal_payment_form", function () {
 			updateFormDatas();
 		});
 	}
 	else {
-		$('#paypal_payment_form').live('submit', function () {
+		$('.paypal_payment_form').live('submit', function () {
 			updateFormDatas();
 		});
 	}
