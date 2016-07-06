@@ -43,7 +43,7 @@ define('WPS', 1); //Paypal Integral
 define('HSS', 2); //Paypal Integral Evolution
 define('ECS', 4); //Paypal Option +
 define('PPP', 5); //Paypal Plus
-define('PVZ', 6); //Braintree
+define('PVZ', 6); //Braintree ONLY
 
 /* Tracking */
 define('TRACKING_INTEGRAL_EVOLUTION', 'FR_PRESTASHOP_H3S');
@@ -417,6 +417,7 @@ class PayPal extends PaymentModule
             'PayPal_braintree_private_key'=> Configuration::get('PAYPAL_BRAINTREE_PRIVATE_KEY'),
             'PayPal_braintree_merchant_id'=> Configuration::get('PAYPAL_BRAINTREE_MERCHANT_ID'),
             'PayPal_check3Dsecure'=> Configuration::get('PAYPAL_USE_3D_SECURE'),
+            'PayPal_braintree_enabled'=> Configuration::get('PAYPAL_BRAINTREE_ENABLED'),
         ));
 
         $this->getTranslations();
@@ -692,7 +693,7 @@ class PayPal extends PaymentModule
             ? $iso_lang[$this->context->language->iso_code] : 'en_US',
         ));
 
-        if ($method == PVZ) {
+        if ($method == PVZ || Configuration::get('PAYPAL_PAYMENT_METHOD')) {
             if(version_compare(PHP_VERSION, '5.4.0', '<'))
             {
                 return;
@@ -720,9 +721,16 @@ class PayPal extends PaymentModule
                 'braintreeAmount'=>$this->context->cart->getOrderTotal(),
                 'check3Dsecure'=>Configuration::get('PAYPAL_USE_3D_SECURE'),
             ));
-            return $this->fetchTemplate('braintree_payment.tpl');
+            $return_braintree = $this->fetchTemplate('braintree_payment.tpl');
 
-        }elseif ($method == HSS) {
+        }
+        else
+        {
+
+        }
+        var_dump($method);
+        die;
+        if ($method == HSS) {
             $billing_address = new Address($this->context->cart->id_address_invoice);
             $delivery_address = new Address($this->context->cart->id_address_delivery);
             $billing_address->country = new Country($billing_address->id_country);
@@ -1473,6 +1481,7 @@ class PayPal extends PaymentModule
                 Configuration::updateValue('PAYPAL_LOGIN_SECRET', Tools::getValue('paypal_login_client_secret'));
                 Configuration::updateValue('PAYPAL_LOGIN_TPL', (int) Tools::getValue('paypal_login_client_template'));
 
+                Configuration::updateValue('PAYPAL_BRAINTREE_ENABLED',Tools::getValue('braintree_enabled'));
                 Configuration::updateValue('PAYPAL_BRAINTREE_PUBLIC_KEY', Tools::getValue('braintree_public_key'));
                 Configuration::updateValue('PAYPAL_BRAINTREE_PRIVATE_KEY', Tools::getValue('braintree_private_key'));
                 Configuration::updateValue('PAYPAL_BRAINTREE_MERCHANT_ID', Tools::getValue('braintree_merchant_id'));

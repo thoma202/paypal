@@ -54,6 +54,7 @@ class PrestaBraintree{
                 'paymentMethodNonce'    => $token_payment,
                 'merchantAccountId'     => $id_account_braintree,
                 'orderId'               => $cart->id,
+                'channel'               => 'PrestaShop_Cart_Braintree',
                 'billing' => [
                     'firstName'         => $address_billing->firstname,
                     'lastName'          => $address_billing->lastname,

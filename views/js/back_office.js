@@ -26,10 +26,37 @@
 $(document).ready(function () {
     var identificationButtonClicked = false;
 
+    var version = $.fn.jquery.split('.');
+    if(version[0] >= 1 && version[1] >= 7)
+    {
+        $("body").on('change','#braintree_enabled', function() {displayConfigurationBraintree();});
+    }
+    else
+    {
+        $('#braintree_enabled').live('change',displayConfigurationBraintree());
+    }
+
+
+    function displayConfigurationBraintree()
+    {
+
+        if($('#braintree_enabled:checked').val())
+        {
+            $('#braintree').slideDown();
+            $('#braintree-credentials').slideDown();
+            $('#paypal_3D_secure').slideDown();
+        }
+        else
+        {
+            $('#braintree').slideUp();
+            $('#braintree-credentials').slideUp();
+            $('#paypal_3D_secure').slideUp();
+        }
+    }
+
     /* Display correct block according to different choices. */
     function displayConfiguration() {
         identificationButtonClicked = false;
-
         var paypal_business = $('input[name="business"]:checked').val();
         var paypal_payment_method = $('input[name="paypal_payment_method"]:checked').val();
         var integral_evolution_solution = $('input[name="integral_evolution_solution"]:checked').val();
@@ -55,8 +82,6 @@ $(document).ready(function () {
                         $('#integral_evolution_solution').slideUp();
                         $('#express_checkout_shortcut').slideDown();
                         $('#in_context_checkout').slideDown();
-                        $('#braintree').hide();
-                        $('#braintree-credentials').slideUp();
                         $('#paypal_3D_secure').slideUp();
                         break;
                     case PayPal_HSS:
@@ -113,15 +138,8 @@ $(document).ready(function () {
                         $('#paypal_3D_secure').slideUp();
                         break;
                     case PayPal_PVZ:
-                        $('.toolbox').slideUp();
-                        $('#paypalplus-credentials').slideUp();
-                        $('#integral-credentials').slideUp();
-                        $('#standard-credentials').slideUp();
                         $('#paypal-signup-button-u3').show();
                         $('#paypal-signup-content-u3').show();
-                        $('#integral_evolution_solution').slideUp();
-                        $('#express_checkout_shortcut').slideUp();
-                        $('#in_context_checkout').slideUp();
                         $('#braintree').show();
                         $('#braintree-credentials').slideDown();
                         $('#paypal_3D_secure').slideDown();

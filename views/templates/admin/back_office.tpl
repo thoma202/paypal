@@ -159,8 +159,8 @@
 							{else}
 							{* WEBSITE PAYMENT PLUS *}
 								<br />
-								<label for="paypal_payment_pvz">
-									<input type="radio" name="paypal_payment_method" id="paypal_payment_pvz" value='{$PayPal_PVZ|escape:'htmlall':'UTF-8'}' {if $PayPal_payment_method == $PayPal_PVZ}checked="checked"{/if} />
+								<label for="braintree_enabled">
+									<input type="checkbox" name="braintree_enabled" id="braintree_enabled" value='{$PayPal_PVZ|escape:'htmlall':'UTF-8'}' {if $PayPal_braintree_enabled == $PayPal_PVZ}checked="checked"{/if} />
 									{l s='Choose' mod='paypal'} {l s='Braintree' mod='paypal'}<br />
 									<span class="description"></span>
 									<p class="toolbox"></p>
@@ -253,21 +253,6 @@
 						<span class="description">{l s='Please check once more that you pasted all the characters.' mod='paypal'}</span>
 					</div>
 
-					<div id="braintree-credentials" class="paypal-hide">
-						<h4>{l s='Thank you to configure your merchants by currency. Careful if you do not configure a merchant currency, the customer will pay in the currency of the currency by default, a conversion will take place' mod='paypal'}</h4>
-
-						<dl>
-							<dt><label for="braintree_public_key">{l s='Public Key' mod='paypal'} : </label></dt>
-							<dd><input type='text' name="braintree_public_key" id="braintree_public_key" value="{$PayPal_braintree_public_key|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
-							<dt><label for="braintree_private_key">{l s='Private Key' mod='paypal'} : </label></dt>
-							<dd><input type='password' size="85" name="braintree_private_key" id="braintree_private_key" value="{$PayPal_braintree_private_key|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
-							<dt><label for="braintree_merchant_id">{l s='Merchant ID' mod='paypal'} : </label></dt>
-							<dd><input type='text' size="85" name="braintree_merchant_id" id="braintree_merchant_id" value="{$PayPal_braintree_merchant_id|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
-						</dl>
-						<div class="clear"></div>
-						<span class="description">{l s='Please check once more that you pasted all the characters.' mod='paypal'}</span>
-					</div>
-
 					<div id="paypalplus-credentials">
 						<h4>{l s='Provide your PayPal API credentials to PrestaShop' mod='paypal'}</h4>
 
@@ -287,16 +272,6 @@
 						<div class="clear"></div>
 					</div>
 
-					<div class="paypal-hide" id="braintree">
-						<dl>
-
-						{foreach from=$Currencies item=currency}
-							<dt><label for="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}">{$currency.name|escape:'html':'UTF-8'} ({$currency.sign|escape:'html':'UTF-8'}) {l s='Merchant account' mod='paypal'} {if $Currency_default == $currency.id_currency}(*)<br/> <span class="description">{l s='Mandatory because default currency' mod='paypal'}</span>{/if}</label></dt>
-							<dd><input type='text' name="account_braintree[{$currency.iso_code|escape:'html':'UTF-8'}]" id="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}" value="{$PayPal_account_braintree.{$currency.iso_code}|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
-						{/foreach}
-						</dl>
-					</div>
-									
 					<div id="integral-credentials" class="paypal-hide">
 						<h4>{l s='Indicate the email you used when you signed up for a PayPal Business account' mod='paypal'}</h4>
 
@@ -415,6 +390,31 @@
 					<input type="radio" name="payment_capture" id="paypal_direct_sale" value="0" {if $PayPal_payment_capture == 0}checked="checked"{/if} /> <label for="paypal_direct_sale">{l s='Direct sales (recommended)' mod='paypal'}</label><br />
 					<input type="radio" name="payment_capture" id="paypal_manual_capture" value="1" {if $PayPal_payment_capture == 1}checked="checked"{/if} /> <label for="paypal_manual_capture">{l s='Authorization/Manual capture (payment shipping)' mod='paypal'}</label>
 
+					<div id="braintree-credentials" class="paypal-hide">
+						<h3>{l s='Braintree Configuration' mod='paypal'}</h3>
+						<h4>{l s='Thank you to configure your merchants by currency. Careful if you do not configure a merchant currency, the customer will pay in the currency of the currency by default, a conversion will take place' mod='paypal'}</h4>
+
+						<dl>
+							<dt><label for="braintree_public_key">{l s='Public Key' mod='paypal'} : </label></dt>
+							<dd><input type='text' name="braintree_public_key" id="braintree_public_key" value="{$PayPal_braintree_public_key|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
+							<dt><label for="braintree_private_key">{l s='Private Key' mod='paypal'} : </label></dt>
+							<dd><input type='password' size="85" name="braintree_private_key" id="braintree_private_key" value="{$PayPal_braintree_private_key|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
+							<dt><label for="braintree_merchant_id">{l s='Merchant ID' mod='paypal'} : </label></dt>
+							<dd><input type='text' size="85" name="braintree_merchant_id" id="braintree_merchant_id" value="{$PayPal_braintree_merchant_id|escape:'html':'UTF-8'}" autocomplete="off" /></dd>
+						</dl>
+						<div class="clear"></div>
+						<span class="description">{l s='Please check once more that you pasted all the characters.' mod='paypal'}</span>
+					</div>
+					<div class="paypal-hide" id="braintree">
+						<dl>
+
+							{foreach from=$Currencies item=currency}
+								<dt><label for="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}">{$currency.name|escape:'html':'UTF-8'} ({$currency.sign|escape:'html':'UTF-8'}) {l s='Merchant account' mod='paypal'} {if $Currency_default == $currency.id_currency}(*)<br/> <span class="description">{l s='Mandatory because default currency' mod='paypal'}</span>{/if}</label></dt>
+								<dd><input type='text' name="account_braintree[{$currency.iso_code|escape:'html':'UTF-8'}]" id="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}" value="{$PayPal_account_braintree.{$currency.iso_code}|escape:'html':'UTF-8'}" autocomplete="off" size="85"/></dd>
+							{/foreach}
+						</dl>
+					</div>
+					<div class="clear"></div>
 					<div id="paypal_3D_secure" style="display: none;">
 						<p>{l s='Enabled 3D secure ?' mod='paypal'}</p>
 						<input type="radio" name="check3Dsecure" id="paypal_3Dsecure_enabled" value="1" {if $PayPal_check3Dsecure == 1}checked="checked"{/if} /> <label for="paypal_3Dsecure_enabled">{l s='yes' mod='paypal'}</label><br />
