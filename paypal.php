@@ -726,10 +726,9 @@ class PayPal extends PaymentModule
         }
         else
         {
-
+            $return_braintree = '';
         }
-        var_dump($method);
-        die;
+
         if ($method == HSS) {
             $billing_address = new Address($this->context->cart->id_address_invoice);
             $delivery_address = new Address($this->context->cart->id_address_delivery);
@@ -772,7 +771,7 @@ class PayPal extends PaymentModule
                 'payment_hss_template' => Configuration::get('PAYPAL_HSS_TEMPLATE'),
             ));
             $this->getTranslations();
-            return $this->fetchTemplate('integral_evolution_payment.tpl');
+            return $this->fetchTemplate('integral_evolution_payment.tpl').$return_braintree;
         } elseif ($method == WPS || $method == ECS) {
             $this->getTranslations();
             $this->context->smarty->assign(array(
@@ -787,7 +786,7 @@ class PayPal extends PaymentModule
                 'PayPal_in_context_checkout_merchant_id' => Configuration::get('PAYPAL_IN_CONTEXT_CHECKOUT_M_ID'),
             ));
 
-            return $this->fetchTemplate('express_checkout_payment.tpl');
+            return $this->fetchTemplate('express_checkout_payment.tpl').$return_braintree;
         } elseif ($method == PPP) {
 
             $CallApiPaypalPlus = new CallApiPaypalPlus();
@@ -805,7 +804,7 @@ class PayPal extends PaymentModule
                 )
             );
 
-            return $this->fetchTemplate('paypal_plus_payment.tpl');
+            return $this->fetchTemplate('paypal_plus_payment.tpl').$return_braintree;
         }
     }
 
