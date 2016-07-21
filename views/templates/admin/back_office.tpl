@@ -173,7 +173,7 @@
 									<input type="checkbox" name="braintree_enabled" id="braintree_enabled" value='{$PayPal_PVZ|escape:'htmlall':'UTF-8'}' {if $PayPal_braintree_enabled == $PayPal_PVZ}checked="checked"{/if} />
 									{l s='Choose' mod='paypal'} {l s='Braintree' mod='paypal'}<br />
 									<span class="description"></span>
-									<p class="toolbox"></p>
+									<!-- <p class="toolbox"></p> -->
 								</label>
 							{/if}
 						{/if}

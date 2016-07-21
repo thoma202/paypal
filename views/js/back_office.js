@@ -44,6 +44,7 @@ $(document).ready(function () {
             $('#braintree').slideDown();
             $('#braintree-credentials').slideDown();
             $('#paypal_3D_secure').slideDown();
+            $('html,body').animate({scrollTop: $("#braintree-credentials").offset().top}, 'slow');
         }
         else
         {

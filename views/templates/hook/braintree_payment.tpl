@@ -1,4 +1,4 @@
-{*
+ {*
 * 2007-2016 PrestaShop
 *
 * NOTICE OF LICENSE
@@ -25,34 +25,36 @@
 
 
 {*Displaying a button or the iframe*}
-<div class="row braintree-row-payment">
-	<div class="col-xs-12">
-		<p class="payment_module">
-			<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
-				<div id="block-card-number" class="block_field">
-					<label for="card-number">{l s="Card Number" mod="paypal"}</label>
-					<div id="card-number" class="hosted_field"></div>
-				</div>
+<div class="row">
+	<div class="col-xs-12 col-md-6">
+		<div class="braintree-row-payment">
+			<p class="payment_module">
+				<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
+					<div id="block-card-number" class="block_field">
+						<label for="card-number">{l s="Card Number" mod="paypal"}</label>
+						<div id="card-number" class="hosted_field"></div>
+					</div>
 
-				<div id="block-expiration-date" class="block_field">
-					<label for="expiration-date">{l s="Expiration Date" mod="paypal"}</label>
-					<div id="expiration-date" class="hosted_field"></div>
-				</div>
+					<div id="block-expiration-date" class="block_field">
+						<label for="expiration-date">{l s="Expiration Date" mod="paypal"}</label>
+						<div id="expiration-date" class="hosted_field"></div>
+					</div>
 
-				<div id="block-cvv" class="block_field">
-					<label for="cvv">{l s="Security Code" mod="paypal"}</label>
-					<div id="cvv" class="hosted_field"></div>
-				</div>
+					<div id="block-cvv" class="block_field">
+						<label for="cvv">{l s="Security Code" mod="paypal"}</label>
+						<div id="cvv" class="hosted_field"></div>
+					</div>
 
-				<input type="hidden" name="deviceData" id="deviceData"/>
-				<input type="hidden" name="client_token" value="{$braintreeToken}">
-				<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
-				<input type="hidden" name="liabilityShiftPossible" id="liabilityShiftPossible"/>
-				<input type="hidden" name="payment_method_nonce" id="payment_method_nonce"/>
+					<input type="hidden" name="deviceData" id="deviceData"/>
+					<input type="hidden" name="client_token" value="{$braintreeToken}">
+					<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
+					<input type="hidden" name="liabilityShiftPossible" id="liabilityShiftPossible"/>
+					<input type="hidden" name="payment_method_nonce" id="payment_method_nonce"/>
 
-			<input type="submit" value="{l s='Pay' mod='paypal'}"  id="braintree_submit"/>
-			</form>
-		</p>
+				<input type="submit" value="{l s='Pay' mod='paypal'}"  id="braintree_submit"/>
+				</form>
+			</p>
+		</div>
 	</div>
 </div>
 
