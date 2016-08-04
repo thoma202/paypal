@@ -693,7 +693,7 @@ class PayPal extends PaymentModule
             ? $iso_lang[$this->context->language->iso_code] : 'en_US',
         ));
 
-        if ($method == PVZ || Configuration::get('PAYPAL_PAYMENT_METHOD')) {
+        if ($method == PVZ || Configuration::get('PAYPAL_BRAINTREE_ENABLED')) {
             if(version_compare(PHP_VERSION, '5.4.0', '<'))
             {
                 return;
@@ -788,7 +788,6 @@ class PayPal extends PaymentModule
 
             return $this->fetchTemplate('express_checkout_payment.tpl').$return_braintree;
         } elseif ($method == PPP) {
-
             $CallApiPaypalPlus = new CallApiPaypalPlus();
             $CallApiPaypalPlus->setParams($params);
 
@@ -1488,10 +1487,15 @@ class PayPal extends PaymentModule
                 
                 /* USE PAYPAL PLUS */
                 if ((int) Tools::getValue('paypal_payment_method') == 5) {
+                    
+                    $refresh_webprofile = Configuration::get('PAYPAL_PLUS_CLIENT_ID') != Tools::getValue('client_id') || Configuration::get('PAYPAL_PLUS_SECRET') != Tools::getValue('secret');
+
                     Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));
                     Configuration::updateValue('PAYPAL_PLUS_SECRET', Tools::getValue('secret'));
 
-                    if ((int) Tools::getValue('paypalplus_webprofile') == 1) {
+                    
+
+                    if ((int) Tools::getValue('paypalplus_webprofile') == 1 || $refresh_webprofile) {
 
                         $ApiPaypalPlus = new ApiPaypalPlus();
                         $idWebProfile = $ApiPaypalPlus->getWebProfile();

@@ -89,6 +89,8 @@ class ApiPaypalPlus
 
     public function getToken($url, $body)
     {
+
+
         $result = $this->sendByCURL($url, $body, false, true);
 
         /*
@@ -99,6 +101,11 @@ class ApiPaypalPlus
         if (isset($oPayPalToken->error)) {
             return false;
         } else {
+
+            if($this->context->cookie->paypal_access_token_time_max > time())
+            {
+                return $this->context->cookie->paypal_access_token_access_token;
+            }
 
             $time_max = time() + $oPayPalToken->expires_in;
             $access_token = $oPayPalToken->access_token;
@@ -123,12 +130,11 @@ class ApiPaypalPlus
         $presentation->locale_code = Tools::strtoupper(Language::getIsoById($this->context->language->id));
 
         $input_fields = new stdClass();
-        $input_fields->allow_note = true;
+        $input_fields->allow_note = false;
         $input_fields->no_shipping = 1;
         $input_fields->address_override = 1;
 
         $flow_config = new stdClass();
-        $flow_config->landing_page_type = "billing";
 
         $webProfile = new stdClass();
         $webProfile->name = Configuration::get('PS_SHOP_NAME');
@@ -267,8 +273,7 @@ class ApiPaypalPlus
             $item->name = $cartItem['name'];
             $item->currency = $oCurrency->iso_code;
             $item->quantity = $cartItem['quantity'];
-            $item->price = number_format(round($cartItem['price'], 2), 2);
-            $item->tax = number_format(round($cartItem['price_wt'] - $cartItem['price'], 2), 2);
+            $item->price = number_format(round($cartItem['price_wt'], 2), 2);
             $aItems[] = $item;
             unset($item);
         }
