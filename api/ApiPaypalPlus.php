@@ -273,10 +273,9 @@ class ApiPaypalPlus
             $item->name = $cartItem['name'];
             $item->currency = $oCurrency->iso_code;
             $item->quantity = $cartItem['quantity'];
-            $item->price = number_format(round($cartItem['price_wt'], 2), 2);
-            //
-            //$item->price = number_format(round($cartItem['price'], 2), 2);
-            //$item->tax = number_format(round($cartItem['price_wt'] - $cartItem['price'], 2), 2);
+            //$item->price = number_format(round($cartItem['price_wt'], 2), 2);
+            $item->price = number_format(round($cartItem['price'], 2), 2);
+            $item->tax = number_format(round($cartItem['price_wt'] - $cartItem['price'], 2), 2);
             $aItems[] = $item;
             unset($item);
         }
@@ -296,7 +295,7 @@ class ApiPaypalPlus
         $amount = new stdClass();
         $amount->total = number_format($totalCartWithTax, 2);
         $amount->currency = $oCurrency->iso_code;
-        //$amount->details = $details;
+        $amount->details = $details;
 
         /* Transaction */
         $transaction = new stdClass();
@@ -334,7 +333,6 @@ class ApiPaypalPlus
         );
 
         $result = $this->sendByCURL(URL_PPP_CREATE_PAYMENT, Tools::jsonEncode($data), $header);
-
         return $result;
     }
 }
