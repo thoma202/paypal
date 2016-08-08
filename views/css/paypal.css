@@ -195,3 +195,22 @@ label span.description{display:block;padding-left:16px}
   border: 1px solid #2e6da4;
   border-radius: 4px;
 }
+
+.braintree_logo{
+    vertical-align: bottom;
+}
+
+.braintree_title_bo{
+    color:#000;
+}
+
+#paypal-wrapper .bo_paypal_help{
+    border-radius:50%;
+    border: 2px solid #036;
+    width: 21px;
+    display: inline-block;
+    height: 21px;
+    font-size: 17px;
+    text-decoration: none;
+    text-align: center;
+}
