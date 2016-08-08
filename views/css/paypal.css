@@ -214,3 +214,7 @@ label span.description{display:block;padding-left:16px}
     text-decoration: none;
     text-align: center;
 }
+
+#paypal-wrapper .braintree_link{
+    text-decoration: none;
+}
