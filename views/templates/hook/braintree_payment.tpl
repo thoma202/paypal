@@ -29,19 +29,18 @@
 	<div class="col-xs-12 col-md-6">
 		<div class="braintree-row-payment">
 			<p class="payment_module">
+               <label class="paypal_title_pay_card">{l s='Pay with your card' mod='paypal'}</label><div class="paypal_clear"></div>
+                <img src="{$base_dir_ssl|escape:'htmlall':'UTF-8'}modules/paypal/views/img/logos/braintree_cards.png" alt="">
 				<form action="{$braintreeSubmitUrl}" id="braintree-form" method="post">
 					<div id="block-card-number" class="block_field">
-						<label for="card-number">{l s="Card Number" mod="paypal"}</label>
 						<div id="card-number" class="hosted_field"></div>
 					</div>
 
-					<div id="block-expiration-date" class="block_field">
-						<label for="expiration-date">{l s="Expiration Date" mod="paypal"}</label>
+					<div id="block-expiration-date" class="block_field half_block_field">
 						<div id="expiration-date" class="hosted_field"></div>
 					</div>
 
-					<div id="block-cvv" class="block_field">
-						<label for="cvv">{l s="Security Code" mod="paypal"}</label>
+					<div id="block-cvv" class="block_field half_block_field">
 						<div id="cvv" class="hosted_field"></div>
 					</div>
 
@@ -50,7 +49,7 @@
 					<input type="hidden" name="liabilityShifted" id="liabilityShifted"/>
 					<input type="hidden" name="liabilityShiftPossible" id="liabilityShiftPossible"/>
 					<input type="hidden" name="payment_method_nonce" id="payment_method_nonce"/>
-
+                <div class="paypal_clear"></div>
 				<input type="submit" value="{l s='Pay' mod='paypal'}"  id="braintree_submit"/>
 				</form>
 			</p>
@@ -66,15 +65,15 @@
 			hostedFields: {
 				number: {
 					selector: "#card-number",
-					placeholder: '{/literal}{l s='Your number' mod='paypal'}{literal}'
+					placeholder: '{/literal}{l s='Card number' mod='paypal'}{literal}'
 				},
 				cvv: {
 					selector: "#cvv",
-					placeholder: '{/literal}{l s='3 or 4 numbers' mod='paypal'}{literal}'
+					placeholder: '{/literal}{l s='CVC' mod='paypal'}{literal}'
 				},
 				expirationDate: {
 					selector: "#expiration-date",
-					placeholder: '{/literal}{l s='Format MM/YY' mod='paypal'}{literal}'
+					placeholder: '{/literal}{l s='MM/YY' mod='paypal'}{literal}'
 				},
 				styles: {
 					'input': {

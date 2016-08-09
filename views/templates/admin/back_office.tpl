@@ -183,7 +183,7 @@
                     {else}
                     {* WEBSITE PAYMENT PLUS *}
                         <br />
-                        <strong class="braintree_title_bo">{l s='Want to use Braintree as card processor ?' mod='paypal'}</strong> &nbsp;<a href="{l s='https://www.braintreepayments.com/' mod='paypal'}" target="_blank" class="braintree_link"><img src="{$PayPal_module_dir}/img/logos/BRAINTREE.png" class="braintree_logo"> &nbsp;&nbsp;&nbsp;<div class="bo_paypal_help">?</div></a><br/>
+                        <strong class="braintree_title_bo">{l s='Want to use Braintree as card processor ?' mod='paypal'}</strong> &nbsp;<a href="{l s='https://www.braintreepayments.com/' mod='paypal'}" target="_blank" class="braintree_link"><img src="{$PayPal_module_dir}/views/img/logos/BRAINTREE.png" class="braintree_logo"> &nbsp;&nbsp;&nbsp;<div class="bo_paypal_help">?</div></a><br/>
                         <label for="braintree_enabled">
                             <input type="checkbox" name="braintree_enabled" id="braintree_enabled" value='{$PayPal_PVZ|escape:'htmlall':'UTF-8'}' {if $PayPal_braintree_enabled == $PayPal_PVZ}checked="checked"{/if} />
                             {l s='Choose' mod='paypal'} {l s='Braintree' mod='paypal'}<br />
@@ -403,7 +403,7 @@
 
 					<div id="braintree-credentials" class="paypal-hide">
 						<h3>{l s='Braintree Configuration' mod='paypal'} <a href="http://202-ecommerce.com/d/braintree-{$default_lang_iso}.pdf" class="bo_paypal_help">?</a></h3>
-						<h4>{l s='Thank you to configure your merchants by currency. Careful if you do not configure a merchant currency, the customer will pay in the currency of the currency by default, a conversion will take place' mod='paypal'}</h4>
+						<h4>{l s='Please make sure you configure the currency to be used on your account. If the wrong currency is selected conversion will take place at withdrawal.' mod='paypal'}</h4>
 
 						<dl>
 							<dt><label for="braintree_public_key">{l s='Public Key' mod='paypal'} : </label></dt>
@@ -420,7 +420,7 @@
 						<dl>
 
 							{foreach from=$Currencies item=currency}
-								<dt><label for="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}">{$currency.name|escape:'html':'UTF-8'} ({$currency.sign|escape:'html':'UTF-8'}) {l s='Merchant account' mod='paypal'} {if $Currency_default == $currency.id_currency}(*)<br/> <span class="description">{l s='Mandatory because default currency' mod='paypal'}</span>{/if}</label></dt>
+								<dt><label for="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}">{l s='Merchant accountID  in' mod='paypal'} {$currency.name|escape:'html':'UTF-8'} ({$currency.sign|escape:'html':'UTF-8'}) {if $Currency_default == $currency.id_currency}(*)<br/> <span class="description">{l s='Mandatory because default currency' mod='paypal'}</span>{/if}</label></dt>
 								<dd><input type='text' name="account_braintree[{$currency.iso_code|escape:'html':'UTF-8'}]" id="account_braintree_{$currency.iso_code|escape:'html':'UTF-8'}" value="{if isset($PayPal_account_braintree.{$currency.iso_code})}{$PayPal_account_braintree.{$currency.iso_code}|escape:'html':'UTF-8'}{/if}" autocomplete="off" size="85"/></dd>
 							{/foreach}
 						</dl>
@@ -480,12 +480,6 @@
 				<hr />
 			</div>
 		</form>
-
-		<div class="box">
-			<p class="description">
-				{l s='*Source: Forrester research realized in march 2011' mod='paypal'}
-			</p>
-		</div>
     {else}
 		<div class="paypal-clear"></div><hr />
 			<div class="box">
