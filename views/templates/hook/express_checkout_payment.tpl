@@ -41,7 +41,11 @@
 					{else}
 						<img src="{$logos.LocalPayPalLogoMedium|escape:'htmlall':'UTF-8'}" alt="{l s='Pay with your card or your PayPal account' mod='paypal'}" />
 					{/if}
+                    {if isset($braintreeToken)}
+                    {l s='Pay with PayPal' mod='paypal'}
+                    {else}
 					{l s='Pay with your card or your PayPal account' mod='paypal'}
+                    {/if}
 				{/if}
 				
 			</a>
