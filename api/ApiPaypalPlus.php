@@ -42,7 +42,7 @@ class ApiPaypalPlus
         }
     }
 
-    protected function sendByCURL($url, $body, $http_header = false, $identify = false)
+    protected function sendByCURL($url, $body, $http_header = false, $identify = false, $customRequest = false)
     {
         $ch = curl_init();
 
@@ -62,7 +62,15 @@ class ApiPaypalPlus
                 curl_setopt($ch, CURLOPT_HTTPHEADER, $http_header);
             }
             if ($body) {
-                curl_setopt($ch, CURLOPT_POST, true);
+                if($customRequest === false)
+                {
+                    curl_setopt($ch, CURLOPT_POST, true);
+                }
+                else
+                {
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $customRequest);
+                }
+
                 if ($identify) {
                     curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($body));
                 } else {
@@ -70,7 +78,6 @@ class ApiPaypalPlus
                 }
 
             }
-
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
             curl_setopt($ch, CURLOPT_HEADER, false);
             curl_setopt($ch, CURLOPT_TIMEOUT, 60);
@@ -80,7 +87,6 @@ class ApiPaypalPlus
             curl_setopt($ch, CURLOPT_VERBOSE, false);
 
             $result = curl_exec($ch);
-
             curl_close($ch);
         }
 
@@ -302,6 +308,7 @@ class ApiPaypalPlus
         $transaction->amount = $amount;
         $transaction->item_list = $itemList;
         $transaction->description = "Payment description";
+        $transaction->notify_url = $shop_url.'/modules/paypal/ipn.php';
 
         /* Redirecte Url */
 
@@ -318,7 +325,6 @@ class ApiPaypalPlus
             $payment->experience_profile_id = Configuration::get('PAYPAL_WEB_PROFILE_ID');
         }
         $payment->redirect_urls = $redirectUrls;
-
         return $payment;
     }
 

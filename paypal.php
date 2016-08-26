@@ -790,16 +790,14 @@ class PayPal extends PaymentModule
         } elseif ($method == PPP) {
             $CallApiPaypalPlus = new CallApiPaypalPlus();
             $CallApiPaypalPlus->setParams($params);
-
             $approuval_url = $CallApiPaypalPlus->getApprovalUrl();
-
             $this->context->smarty->assign(
                 array(
                     'approval_url' => $approuval_url,
                     'language' => $this->getLocalePayPalPlus(),
                     'country' => $this->getCountryCode(),
-                    'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox'
-                    : 'live',
+                    'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox': 'live',
+                    'ajaxUrl' => $this->context->link->getModuleLink('paypal','pluspatch',array('id_cart'=>$this->context->cart->id,'id_payment'=>$CallApiPaypalPlus->id_payment)),
                 )
             );
 
