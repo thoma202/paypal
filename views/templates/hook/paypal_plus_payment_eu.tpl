@@ -34,6 +34,7 @@
         "approvalUrl": "{/literal}{$approval_url|escape:'UTF-8'}{literal}",
         "placeholder": "ppplus",
         "mode": "{/literal}{$mode|escape:'htmlall':'UTF-8'}{literal}",
+        {/literal}{if $mode == 'sandbox'}"showPuiOnSandbox": true,{/if}{literal}
         "language": "{/literal}{$language|escape:'htmlall':'UTF-8'}{literal}",
         "country": "{/literal}{$country|escape:'htmlall':'UTF-8'}{literal}",
         "onContinue" : function () {

@@ -229,7 +229,6 @@ class PayPalIPN extends PayPal
     }
 }
 
-file_put_contents(_PS_MODULE_DIR_.'paypal/paypal.log', date('d/m/Y H:i:s').' '.print_r($_REQUEST,true).PHP_EOL.PHP_EOL,8);
 
 if (Tools::getValue('receiver_email') == Configuration::get('PAYPAL_BUSINESS_ACCOUNT')) {
 

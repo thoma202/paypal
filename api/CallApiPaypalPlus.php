@@ -105,8 +105,9 @@ class CallApiPaypalPlus extends ApiPaypalPlus
         );
 
         $data = array('payer_id' => $payer_id);
+        $response = $this->sendByCURL(URL_PPP_EXECUTE_PAYMENT.$paymentId.'/execute/', Tools::jsonEncode($data), $header);
 
-        return $this->sendByCURL(URL_PPP_EXECUTE_PAYMENT.$paymentId.'/execute/', Tools::jsonEncode($data), $header);
+        return $response;
     }
 
     public function executeRefund($paymentId, $data)
@@ -194,18 +195,16 @@ class CallApiPaypalPlus extends ApiPaypalPlus
         $payment[0]->value->line1 = $address->address1;
         $payment[0]->value->city = $address->city;
         $payment[0]->value->recipient_name = $address->firstname.' '.$address->lastname;//$address->alias;
-        $payment[0]->value->state = ($state->iso_code == null) ? '' : $state->iso_code;;
+        $payment[0]->value->state = ($state->iso_code == null) ? '' : $state->iso_code;
         $payment[0]->value->country_code = $country->iso_code;
         $payment[0]->value->postal_code = $address->postcode;
-
 
         $accessToken = $this->refreshToken();
         $header = array(
             'Content-Type:application/json',
             'Authorization:Bearer '.$accessToken,
         );
-        $body = str_replace('\\', '', json_encode($payment));
-
+        $body = str_replace('\/transactions\/0\/item_list\/shipping_address', '/transactions/0/item_list/shipping_address',json_encode($payment) );
         return $this->sendByCURL(URL_PPP_PATCH.$id_payment, $body, $header, false, 'PATCH');
     }
 }

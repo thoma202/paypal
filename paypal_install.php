@@ -106,7 +106,19 @@ class PayPalInstall
                 `datas` varchar(255) NULL,
                 `id_order` int(11) NULL,
 			    PRIMARY KEY (`id_paypal_braintree`)
-				) ENGINE='._MYSQL_ENGINE_.'  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;')) {
+				) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;')) {
+            return false;
+        }
+
+        if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paypal_plus_pui` (
+                `id_paypal_plus_pui` int(11) NOT NULL,
+                `id_order` int(11) NOT NULL,
+                `pui_informations` text NOT NULL
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+        ALTER TABLE `'._DB_PREFIX_.'payal_plus_pui` ADD PRIMARY KEY (`id_paypal_plus_pui`);
+        ALTER TABLE `'._DB_PREFIX_.'payal_plus_pui` MODIFY `id_paypal_plus_pui` int(11) NOT NULL AUTO_INCREMENT;
+        ')) {
             return false;
         }
     }

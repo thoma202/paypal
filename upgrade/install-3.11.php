@@ -46,6 +46,16 @@ function upgrade_module_3_11($object, $install = false)
 				) ENGINE='._MYSQL_ENGINE_.'  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;')) {
             return false;
         }
+        if (!Db::getInstance()->Execute('
+			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paypal_plus_pui` (
+                `id_paypal_plus_pui` int(11) NOT NULL,
+                `id_order` int(11) NOT NULL,
+                `pui_informations` text NOT NULL
+                PRIMARY KEY (`id_paypal_plus_pui`)
+        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;')) {
+            return false;
+        }
+
         if (_PS_VERSION_ >= '1.5')
         {
             $object->registerHook('actionOrderStatusPostUpdate');

@@ -204,6 +204,14 @@ function displayAjax($context)
                     );
                     $return['error'][] = $paypal->l('An error occured during the payment');
                 }
+
+                if(isset($payment->payment_instruction))
+                {
+                    $order = Order::getOrderByCartId($this->id_cart);
+                    $paypal_plus_pui = new PaypalPlusPui();
+                    $paypal_plus_pui->id_order = $order->id;
+                    $paypal_plus_pui->pui_informations = json_encode($payment->payment_instruction);
+                }
             } elseif ($submit == 'confirmCancel') {
 
                 $paypal->validateOrder(

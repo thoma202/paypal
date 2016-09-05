@@ -38,6 +38,7 @@ include_once _PS_MODULE_DIR_.'paypal/paypal_login/PayPalLoginUser.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/PaypalCapture.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/AuthenticatePaymentMethods.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/TLSVerificator.php';
+include_once _PS_MODULE_DIR_.'paypal/classes/PaypalPlusPui.php';
 
 define('WPS', 1); //Paypal Integral
 define('HSS', 2); //Paypal Integral Evolution
@@ -136,13 +137,20 @@ class PayPal extends PaymentModule
 
     public function install()
     {
-        if (!parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn')
-            ||
-            !$this->registerHook('shoppingCartExtra') || !$this->registerHook('backBeforePayment')
-            || !$this->registerHook('rightColumn') ||
-            !$this->registerHook('cancelProduct') || !$this->registerHook('productFooter')
-            || !$this->registerHook('header') ||
-            !$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader')) {
+        if (!parent::install()
+            || !$this->registerHook('payment')
+            || !$this->registerHook('paymentReturn')
+            || !$this->registerHook('shoppingCartExtra')
+            || !$this->registerHook('backBeforePayment')
+            || !$this->registerHook('rightColumn')
+            || !$this->registerHook('cancelProduct')
+            || !$this->registerHook('productFooter')
+            || !$this->registerHook('header')
+            || !$this->registerHook('adminOrder')
+            || !$this->registerHook('backOfficeHeader')
+            || !$this->registerHook('displayPDFInvoice')
+            || !$this->registerHook('PDFInvoice')) {
+
             return false;
         }
 
@@ -798,6 +806,7 @@ class PayPal extends PaymentModule
                     'country' => $this->getCountryCode(),
                     'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox': 'live',
                     'ajaxUrl' => $this->context->link->getModuleLink('paypal','pluspatch',array('id_cart'=>$this->context->cart->id,'id_payment'=>$CallApiPaypalPlus->id_payment)),
+                    'img_loader' => _PS_IMG_.'loader.gif',
                 )
             );
 
@@ -1461,6 +1470,12 @@ class PayPal extends PaymentModule
             if (Tools::getValue('paypal_country_only')) {
                 Configuration::updateValue('PAYPAL_COUNTRY_DEFAULT', (int) Tools::getValue('paypal_country_only'));
             } elseif ($this->_preProcess()) {
+
+                if(Configuration::get('PAYPAL_SANDBOX') != Tools::getValue('sandbox_mode'))
+                {
+                    unset($this->context->cookie->paypal_access_token_time_max);
+                    unset($this->context->cookie->paypal_access_token_access_token);
+                }
                 Configuration::updateValue('PAYPAL_BUSINESS', (int) Tools::getValue('business'));
                 Configuration::updateValue('PAYPAL_PAYMENT_METHOD', (int) Tools::getValue('paypal_payment_method'));
                 Configuration::updateValue('PAYPAL_API_USER', trim(Tools::getValue('api_username')));
@@ -2216,5 +2231,31 @@ WHERE id_order = '.$id_order;
             $this->context->cart->id_currency = $id_currency_origin_cart;
             $this->context->cookie->id_currency = $id_currency_origin_cookie;
         }
+    }
+
+    // FOR PRESTASHOP 1.4
+    public function hookPDFInvoice($params)
+    {
+        return $this->hookDisplayPDFInvoice($params);
+    }
+
+    public function hookDisplayPDFInvoice($params)
+    {
+
+        $order_detail = PaypalPlusPui::getByIdOrder($params['object']->id_order);
+        $information = json_decode($order_detail['pui_informations'],true);
+        $tab = '<table style="border: solid 1pt black; padding:0 10pt">
+    <tr><td></td><td></td></tr>
+    <tr><td><b>'.$this->l('Bank name').'</b></td><td>'.$information['recipient_banking_instruction']['bank_name'].'</td></tr>
+    <tr><td><b>'.$this->l('Account holder name').'</b></td><td>'.$information['recipient_banking_instruction']['account_holder_name'].'</td></tr>
+    <tr><td><b>'.$this->l('IBAN').'</b></td><td>'.$information['recipient_banking_instruction']['international_bank_account_number'].'</td></tr>
+    <tr><td><b>'.$this->l('BIC').'</b></td><td>'.$information['recipient_banking_instruction']['bank_identifier_code'].'</td></tr>
+    <tr><td></td><td></td></tr>
+    <tr><td><b>'.$this->l('Amount due / currency').'</b></td><td>'.$information['amount']['value'].' '.$information['amount']['currency'].'</td></tr>
+    <tr><td><b>'.$this->l('Payment due date').'</b></td><td>'.$information['payment_due_date'].'</td></tr>
+    <tr><td><b>'.$this->l('reference').'</b></td><td>'.$information['reference_number'].'</td></tr>
+    <tr><td></td><td></td></tr>
+</table>';
+        return $tab;
     }
 }
