@@ -25,7 +25,6 @@
  *  International Registered Trademark & Property of PrestaShop SA
  */
 
-
 class PaypalPlusPui extends ObjectModel{
 
     public $id_paypal_plus_pui;
