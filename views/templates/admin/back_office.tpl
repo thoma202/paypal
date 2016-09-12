@@ -179,7 +179,7 @@
 				{/if}
                 {if (in_array($PayPal_PVZ, $PayPal_allowed_methods))}
                     {if version_compare($smarty.const.PHP_VERSION, '5.4.0', '<')}
-                        {l s="You can't use braintree because your PHP version is too old (PHP 5.4 min)" mod="paypal"}
+                        {l s='You can\'t use braintree because your PHP version is too old (PHP 5.4 min)' mod='paypal'}
                     {else}
                     {* WEBSITE PAYMENT PLUS *}
                         <br />

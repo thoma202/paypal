@@ -1,9 +1,28 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: Sébastien
- * Date: 04/04/2016
- * Time: 10:05
+ * 2007-2016 PrestaShop
+ *
+ * NOTICE OF LICENSE
+ *
+ * This source file is subject to the Academic Free License (AFL 3.0)
+ * that is bundled with this package in the file LICENSE.txt.
+ * It is also available through the world-wide-web at this URL:
+ * http://opensource.org/licenses/afl-3.0.php
+ * If you did not receive a copy of the license and are unable to
+ * obtain it through the world-wide-web, please send an email
+ * to license@prestashop.com so we can send you a copy immediately.
+ *
+ * DISCLAIMER
+ *
+ * Do not edit or add to this file if you wish to upgrade PrestaShop to newer
+ * versions in the future. If you wish to customize PrestaShop for your
+ * needs please refer to http://www.prestashop.com for more information.
+ *
+ *  @author    PrestaShop SA <contact@prestashop.com>
+ *  @copyright 2007-2016 PrestaShop SA
+ *  @version  Release: $Revision: 13573 $
+ *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ *  International Registered Trademark & Property of PrestaShop SA
  */
 
 include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
@@ -61,7 +80,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
                     $transactionDetail = $this->getDetailsTransaction($braintree_transaction->id,$braintree_transaction->status);
                     $paypal->validateOrder($this->context->cart->id, Configuration::get('PS_OS_PAYMENT'), $this->context->cart->getOrderTotal(), $paypal->displayName, $paypal->l('Payment accepted.'),$transactionDetail);
                     $order_id = Order::getOrderByCartId($this->context->cart->id);
-                    $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id,Context::getContext()->customer->secure_key);
+                    $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id);
                 } else {
                     $paypal->reset_context();
                     $this->redirectFailedPayment();
@@ -69,7 +88,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
                 break;
             case 'alreadyUse':
                 $order_id = Order::getOrderByCartId($this->context->cart->id);
-                $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id,Context::getContext()->customer->secure_key);
+                $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id);
                 die;
                 break;
             default:
@@ -87,7 +106,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
                 $paypal->reset_context();
                 $order_id = Order::getOrderByCartId($this->context->cart->id);
                 $braintree->updateTransaction($id_braintree_presta,$transaction->id,$order_id);
-                $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id,Context::getContext()->customer->secure_key);
+                $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id);
                 break;
         }
     }
@@ -97,7 +116,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
         Tools::redirect($this->context->link->getPageLink('order.php'));
     }
 
-    public function redirectConfirmation($id_paypal,$id_cart,$id_order,$key)
+    public function redirectConfirmation($id_paypal,$id_cart,$id_order)
     {
         Tools::redirect($this->context->link->getPageLink('order-confirmation.php?id_module='.$id_paypal.'&id_cart='.$id_cart.'&id_order='.$id_order.'&key='.Context::getContext()->customer->secure_key));
     }
