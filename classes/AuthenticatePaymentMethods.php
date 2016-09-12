@@ -64,6 +64,18 @@ class AuthenticatePaymentMethods
             'TR'=>array(WPS, ECS),
             'SI'=>array(WPS, ECS),
             'GB'=>array(WPS, HSS, ECS),
+            'IE'=>array(WPS, ECS),
+            'LT'=>array(WPS, ECS),
+            'EE'=>array(WPS, ECS),
+            'LV'=>array(WPS, ECS),
+            'RS'=>array(WPS, ECS),
+            'HR'=>array(WPS, ECS),
+            'MD'=>array(WPS, ECS),
+            'BA'=>array(WPS, ECS),
+            'AL'=>array(WPS, ECS),
+            'MT'=>array(WPS, ECS),
+            'MC'=>array(WPS, ECS),
+            'IS'=>array(WPS, ECS),
 
             //ASIE
             'CN'=>array(WPS, ECS),
