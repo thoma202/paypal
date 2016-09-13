@@ -58,87 +58,86 @@
 </div>
 
 {literal}
-	<script src="https://js.braintreegateway.com/js/braintree-2.24.0.min.js"></script>
-	<script type="text/javascript">
-		braintree.setup("{/literal}{$braintreeToken}{literal}", "custom", {
-			id: "braintree-form",
-			hostedFields: {
-				number: {
-					selector: "#card-number",
-					placeholder: '{/literal}{l s='Card number' mod='paypal'}{literal}'
+	<script id="file_braintree" src="https://js.braintreegateway.com/js/braintree-2.24.0.min.js"></script>
+	<script async type="text/javascript">
+			braintree.setup("{/literal}{$braintreeToken}{literal}", "custom", {
+				id: "braintree-form",
+				hostedFields: {
+					number: {
+						selector: "#card-number",
+						placeholder: '{/literal}{l s='Card number' mod='paypal'}{literal}'
+					},
+					cvv: {
+						selector: "#cvv",
+						placeholder: '{/literal}{l s='CVC' mod='paypal'}{literal}'
+					},
+					expirationDate: {
+						selector: "#expiration-date",
+						placeholder: '{/literal}{l s='MM/YY' mod='paypal'}{literal}'
+					},
+					styles: {
+						'input': {
+							'color': '#999999',
+							'font-size': '14px',
+							'font-family': 'PayPal Forward, sans-serif'
+						}
+					}
 				},
-				cvv: {
-					selector: "#cvv",
-					placeholder: '{/literal}{l s='CVC' mod='paypal'}{literal}'
+				dataCollector: {
+					kount: {environment: {/literal}{if $sandbox_mode}'sandbox'{else}'production'{/if}{literal}}
 				},
-				expirationDate: {
-					selector: "#expiration-date",
-					placeholder: '{/literal}{l s='MM/YY' mod='paypal'}{literal}'
+				onReady : function(braintreeInstance) {
+					//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
+					$('#deviceData').val(braintreeInstance.deviceData);
 				},
-				styles: {
-					'input': {
-						'color': '#999999',
-						'font-size': '14px',
-						'font-family': 'PayPal Forward, sans-serif'
+				onError : function(error) {
+					$.fancybox.open([
+						{
+							type: 'inline',
+							autoScale: true,
+							minHeight: 30,
+							content: '<p class="braintree-error">' + error.message + '</p>'
+						}
+					]);
+				},
+				{/literal}{if $check3Dsecure}{literal}
+				onPaymentMethodReceived: function (obj) {
+					if (obj.type == 'CreditCard') {
+
+						var client = new braintree.api.Client({clientToken: "{/literal}{$braintreeToken}{literal}"});
+						client.verify3DS({
+									amount: {/literal}{$braintreeAmount}{literal},
+									creditCard: obj.nonce
+								},
+								function (error, response) {
+									if (!error) {
+										$('#payment_method_nonce').val(response.nonce);
+										$('#liabilityShifted').val(response.verificationDetails.liabilityShifted);
+										$('#liabilityShiftPossible').val(response.verificationDetails.liabilityShiftPossible);
+									}
+									else
+									{
+										$.fancybox.open([
+											{
+												type: 'inline',
+												autoScale: true,
+												minHeight: 30,
+												content: '<p class="braintree-error">' + error.message + '</p>'
+											}
+										]);
+									}
+									$('#braintree-form').submit();
+								});
+					}
+					else {
+						$('#braintree-form').submit();
 					}
 				}
-			},
-			dataCollector: {
-				kount: {environment: {/literal}{if $sandbox_mode}'sandbox'{else}'production'{/if}{literal}}
-			},
-			onReady : function(braintreeInstance) {
-				//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
-				$('#deviceData').val(braintreeInstance.deviceData);
-			},
-			onError : function(error) {
-				$.fancybox.open([
-					{
-						type: 'inline',
-						autoScale: true,
-						minHeight: 30,
-						content: '<p class="braintree-error">' + error.message + '</p>'
-					}
-				]);
-			},
-			{/literal}{if $check3Dsecure}{literal}
-			onPaymentMethodReceived: function (obj) {
-				if (obj.type == 'CreditCard') {
+				{/literal}{/if}{literal}
+			});
 
-					var client = new braintree.api.Client({clientToken: "{/literal}{$braintreeToken}{literal}"});
-					client.verify3DS({
-								amount: {/literal}{$braintreeAmount}{literal},
-								creditCard: obj.nonce
-							},
-							function (error, response) {
-								if (!error) {
-									$('#payment_method_nonce').val(response.nonce);
-									$('#liabilityShifted').val(response.verificationDetails.liabilityShifted);
-									$('#liabilityShiftPossible').val(response.verificationDetails.liabilityShiftPossible);
-								}
-								else
-								{
-									$.fancybox.open([
-										{
-											type: 'inline',
-											autoScale: true,
-											minHeight: 30,
-											content: '<p class="braintree-error">' + error.message + '</p>'
-										}
-									]);
-								}
-								$('#braintree-form').submit();
-							});
-				}
-				else {
-					$('#braintree-form').submit();
-				}
-			}
-		{/literal}{/if}{literal}
-		});
-
-		var client = new braintree.api.Client({
-			clientToken: "{/literal}{$braintreeToken}{literal}"
-		});
-
+			var client = new braintree.api.Client({
+				clientToken: "{/literal}{$braintreeToken}{literal}"
+			});
 	</script>
 {/literal}

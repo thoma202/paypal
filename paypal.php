@@ -442,7 +442,7 @@ class PayPal extends PaymentModule
     /**
      * Hooks methods
      */
-    public function hookHeader()
+    public function hookHeader($params)
     {
         if ($this->useMobile()) {
             $id_hook = (int) Configuration::get('PS_MOBILE_HOOK_HEADER_ID');
@@ -458,6 +458,8 @@ class PayPal extends PaymentModule
         if (isset($this->context->cart) && $this->context->cart->id) {
             $this->context->smarty->assign('id_cart', (int) $this->context->cart->id);
         }
+
+
 
         /* Added for PrestaBox */
         if (method_exists($this->context->controller, 'addCSS')) {
@@ -507,6 +509,10 @@ class PayPal extends PaymentModule
                 'PAYPAL_RETURN_LINK' => PayPalLogin::getReturnLink(),
             ));
             $process .= '<script src="https://www.paypalobjects.com/webstatic/ppplus/ppplus.min.js" type="text/javascript"></script>';
+        }
+
+        if ((Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ || Configuration::get('PAYPAL_BRAINTREE_ENABLED')) && version_compare(PHP_VERSION, '5.4.0', '>=') && $this->context->controller instanceof OrderOpcController) {
+            $process .= '<script id="file_braintree" src="https://js.braintreegateway.com/js/braintree-2.24.0.min.js"></script>';
         }
 
         return $process;
