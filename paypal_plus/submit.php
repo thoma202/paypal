@@ -210,7 +210,7 @@ function displayAjax($context)
                     $order = Order::getOrderByCartId($this->id_cart);
                     $paypal_plus_pui = new PaypalPlusPui();
                     $paypal_plus_pui->id_order = $order->id;
-                    $paypal_plus_pui->pui_informations = json_encode($payment->payment_instruction);
+                    $paypal_plus_pui->pui_informations = Tools::jsonEncode($payment->payment_instruction);
                 }
             } elseif ($submit == 'confirmCancel') {
 

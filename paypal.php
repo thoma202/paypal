@@ -1231,16 +1231,18 @@ class PayPal extends PaymentModule
 
     public function hookDisplayOrderConfirmation()
     {
-        include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
         $id_order = (int) Tools::getValue('id_order');
+        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.$id_order);
+        if(!isset($transactionId) || empty($transactionId))
+        {
+            return;
+        }
         $order = new Order($id_order);
        
-        $braintree = new PrestaBraintree();
-
         $price = Tools::displayPrice($order->total_paid_tax_incl, $this->context->currency);
 
         $this->context->smarty->assign(array(
-            'transaction_id'=> $braintree->getTransactionId($id_order),
+            'transaction_id'=> $transactionId,
             'order' => (array)$order,
             'price' => $price,
 

@@ -240,7 +240,7 @@ class PayPalSubmitplusModuleFrontController extends ModuleFrontController
 
                         $paypal_plus_pui = new PaypalPlusPui();
                         $paypal_plus_pui->id_order = $id_order;
-                        $paypal_plus_pui->pui_informations = json_encode($payment->payment_instruction);
+                        $paypal_plus_pui->pui_informations = Tools::jsonEncode($payment->payment_instruction);
 
                         file_put_contents(_PS_MODULE_DIR_.'paypal/paypal.log', var_export($paypal_plus_pui,true),8);
 
