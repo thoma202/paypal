@@ -98,7 +98,7 @@ class PayPalInstall
 
         if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paypal_braintree` (
-                `id_paypal_braintree` int(11) NOT NULL,
+                `id_paypal_braintree` int(11) NOT NULL AUTO_INCREMENT,
                 `id_cart` int(11) NOT NULL,
                 `nonce_payment_token` varchar(255) NOT NULL,
                 `client_token` text NOT NULL,
@@ -112,12 +112,11 @@ class PayPalInstall
 
         if (!Db::getInstance()->Execute('
 			CREATE TABLE IF NOT EXISTS `'._DB_PREFIX_.'paypal_plus_pui` (
-                `id_paypal_plus_pui` int(11) NOT NULL,
+                `id_paypal_plus_pui` int(11) NOT NULL AUTO_INCREMENT,
                 `id_order` int(11) NOT NULL,
                 `pui_informations` text NOT NULL
-        ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
-        ALTER TABLE `'._DB_PREFIX_.'payal_plus_pui` ADD PRIMARY KEY (`id_paypal_plus_pui`);
-        ALTER TABLE `'._DB_PREFIX_.'payal_plus_pui` MODIFY `id_paypal_plus_pui` int(11) NOT NULL AUTO_INCREMENT;
+                ) ENGINE='._MYSQL_ENGINE_.' DEFAULT CHARSET=utf8 AUTO_INCREMENT=1;
+                ALTER TABLE `'._DB_PREFIX_.'payal_plus_pui` ADD PRIMARY KEY (`id_paypal_plus_pui`);
         ')) {
             return false;
         }

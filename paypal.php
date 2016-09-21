@@ -2236,8 +2236,8 @@ WHERE id_order = '.$id_order;
     {
         if($this->context_modified)
         {
-            $this->context->cart->id_currency = $id_currency_origin_cart;
-            $this->context->cookie->id_currency = $id_currency_origin_cookie;
+            $this->context->cart->id_currency = $this->id_currency_origin_cart;
+            $this->context->cookie->id_currency = $this->id_currency_origin_cookie;
         }
     }
 

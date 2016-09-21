@@ -78,7 +78,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
                 $braintree_transaction = $braintree->checkStatus($this->context->cart->id);
                 if ($braintree_transaction instanceof Braintree_Transaction) {
                     $transactionDetail = $this->getDetailsTransaction($braintree_transaction->id,$braintree_transaction->status);
-                    $paypal->validateOrder($this->context->cart->id, Configuration::get('PS_OS_PAYMENT'), $this->context->cart->getOrderTotal(), $paypal->displayName, $paypal->l('Payment accepted.'),$transactionDetail);
+                    $paypal->validateOrder($this->context->cart->id, Configuration::get('PS_OS_PAYMENT'), $braintree_transaction->amount, $paypal->displayName, $paypal->l('Payment accepted.'),$transactionDetail);
                     $order_id = Order::getOrderByCartId($this->context->cart->id);
                     $this->redirectConfirmation($paypal->id,$this->context->cart->id,$order_id);
                 } else {
@@ -102,7 +102,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
                     $this->redirectFailedPayment();
                 }
                 $transactionDetail = $this->getDetailsTransaction($transaction->id,$transaction->status);
-                $paypal->validateOrder($this->context->cart->id, (Configuration::get('PAYPAL_CAPTURE')?Configuration::get('PS_OS_PAYPAL'):Configuration::get('PS_OS_PAYMENT')), $this->context->cart->getOrderTotal(), $paypal->displayName, $paypal->l('Payment accepted.'),$transactionDetail);
+                $paypal->validateOrder($this->context->cart->id, (Configuration::get('PAYPAL_CAPTURE')?Configuration::get('PS_OS_PAYPAL'):Configuration::get('PS_OS_PAYMENT')), $transaction->amount, $paypal->displayName, $paypal->l('Payment accepted.'),$transactionDetail);
                 $paypal->reset_context();
                 $order_id = Order::getOrderByCartId($this->context->cart->id);
                 $braintree->updateTransaction($id_braintree_presta,$transaction->id,$order_id);
