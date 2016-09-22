@@ -125,13 +125,13 @@ class PrestaBraintree{
     public function saveTransaction($data)
     {
         Db::getInstance()->Execute('INSERT INTO `'._DB_PREFIX_.'paypal_braintree`(`id_cart`,`nonce_payment_token`,`client_token`,`datas`)
-			VALUES ('.$data['id_cart'].',\''.$data['nonce_payment_token'].'\',\''.$data['client_token'].'\',\''.$data['datas'].'\')');
+			VALUES ('.pSQL($data['id_cart']).',\''.pSQL($data['nonce_payment_token']).'\',\''.pSQL($data['client_token']).'\',\''.pSQL($data['datas']).'\')');
         return Db::getInstance()->Insert_ID();
     }
 
     public function updateTransaction($braintree_id,$transaction,$id_order)
     {
-        Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_braintree` set transaction=\''.$transaction.'\', id_order = '.$id_order.' WHERE id_paypal_braintree = '.$braintree_id);
+        Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_braintree` set transaction=\''.pSQL($transaction).'\', id_order = '.pSQL($id_order).' WHERE id_paypal_braintree = '.pSQL($braintree_id));
     }
 
     public function checkStatus($id_cart)

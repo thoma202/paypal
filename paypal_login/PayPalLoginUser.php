@@ -110,7 +110,7 @@ class PaypalLoginUser extends ObjectModel
         }
 
         if ($refresh_token) {
-            $sql .= " AND `refresh_token` = '".$refresh_token."' ";
+            $sql .= " AND `refresh_token` = '".pSQL($refresh_token)."' ";
         }
 
         $results = DB::getInstance()->executeS($sql);

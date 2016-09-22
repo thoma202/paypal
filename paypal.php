@@ -273,7 +273,7 @@ class PayPal extends PaymentModule
         }
 
         if (version_compare(_PS_VERSION_, '1.5.0.2', '>=')) {
-            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.$this->name.'\'');
+            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.pSQL($this->name).'\'');
             if (empty($version) === true) {
                 Db::getInstance()->execute('
                     UPDATE `'._DB_PREFIX_.'module` m
