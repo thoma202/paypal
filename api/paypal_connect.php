@@ -158,7 +158,7 @@ class PayPalConnect
             $date = date('Ymd');
             $path = _PS_MODULE_DIR_.'paypal/log/';
             $context = Context::getContext();
-            file_put_contents($path.$date.'_paypal_curl.log',date('d/m/Y H:i:s').' cart : '.$context->cart->id.' => '.$message.PHP_EOL,FILE_APPEND);
+            // file_put_contents($path.$date.'_paypal_curl.log',date('d/m/Y H:i:s').' cart : '.$context->cart->id.' => '.$message.PHP_EOL,FILE_APPEND);
             $date_last_purge = Configuration::get('PAYPAL_PURGE_LOG_DATE');
             // if date not set : set at yesterday
             if(!$date_last_purge)
