@@ -95,9 +95,9 @@ class PaypalLib
             $this->_logs[] = $key.' -> '.$value;
         }
 
-        if (count($this->_logs) <= 2) {
-            $this->_logs = array_merge($this->_logs, $logs_request);
-        }
+        // if (count($this->_logs) <= 2) {
+        //     $this->_logs = array_merge($this->_logs, $logs_request);
+        // }
 
         return $return;
     }
