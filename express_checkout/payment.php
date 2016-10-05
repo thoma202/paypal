@@ -352,7 +352,7 @@ function validateOrder($customer, $cart, $ppec)
     $ppec->validateOrder(
         (int) $cart->id,
         $payment_type,
-        $order_total,
+        $transaction['total_paid'],
         $ppec->displayName,
         $message,
         $transaction,
