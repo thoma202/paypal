@@ -664,7 +664,7 @@ class PayPal extends PaymentModule
     {
         if($params['newOrderStatus']->id == Configuration::get('PS_OS_CANCELED'))
         {
-            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.pSQL($params['id_order']));
+            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.(int)$params['id_order']);
 
             if($transction_id)
             {
@@ -1732,8 +1732,8 @@ class PayPal extends PaymentModule
         }
 
         $sql = 'SELECT transaction
-FROM '._DB_PREFIX_.'paypal_braintree
-WHERE id_order = '.$id_order;
+            FROM '._DB_PREFIX_.'paypal_braintree
+            WHERE id_order = '.(int)$id_order;
 
         $transaction_braintree = Db::getInstance()->getValue($sql);
 

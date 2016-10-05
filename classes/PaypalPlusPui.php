@@ -46,7 +46,7 @@ class PaypalPlusPui extends ObjectModel{
         $sql = new DbQuery();
         $sql->select('*');
         $sql->from('paypal_plus_pui');
-        $sql->where('id_order = ' .pSQL($id_order));
+        $sql->where('id_order = '.(int)$id_order);
         return Db::getInstance()->getRow($sql);
     }
 }
