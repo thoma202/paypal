@@ -46,12 +46,15 @@ class PayPalPlusPatchModuleFrontController extends ModuleFrontController
 
     public function postProcess()
     {
-        if(Tools::getValue('id_cart') && Tools::getValue('id_payment'))
+        if(Tools::getValue('id_cart') == $this->context->cart->id)
         {
-            $cart = new Cart(Tools::getValue('id_cart'));
-            $address_delivery = new Address($cart->id_address_delivery);
-            $ppplus = new CallApiPaypalPlus();
-            $result = $ppplus->patch(Tools::getValue('id_payment'),$address_delivery);
+            if(Tools::getValue('id_cart') && Tools::getValue('id_payment'))
+            {
+                $cart = new Cart(Tools::getValue('id_cart'));
+                $address_delivery = new Address($cart->id_address_delivery);
+                $ppplus = new CallApiPaypalPlus();
+                $result = $ppplus->patch(Tools::getValue('id_payment'),$address_delivery);
+            }
         }
     }
 
