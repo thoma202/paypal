@@ -135,7 +135,7 @@ class PaypalCapture extends ObjectModel
     public function getListCaptured()
     {
         if (version_compare(_PS_VERSION_, '1.5', '<')) {
-            $query = 'SELECT * FROM '._DB_PREFIX_.'paypal_capture WHERE id_order ='.$this->id_order.' ORDER BY date_add DESC ;';
+            $query = 'SELECT * FROM '._DB_PREFIX_.'paypal_capture WHERE id_order ='.pSQL($this->id_order).' ORDER BY date_add DESC ;';
         } else {
             $query = new DbQuery();
             $query->from(self::$definition['table']);
