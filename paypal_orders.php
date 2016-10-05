@@ -146,7 +146,7 @@ class PayPalOrder
 				AND `id_transaction` = \''.pSQL($transaction['id_transaction']).'\'
 				AND `currency` = \''.pSQL($transaction['currency']).'\'';
         if ((int) Configuration::get('PAYPAL_SANDBOX') != 1) {
-            $sql .= 'AND `total_paid` = \''.$transaction['total_paid'].'\'
+            $sql .= 'AND `total_paid` = \''.pSQL($transaction['total_paid']).'\'
 				AND `shipping` = \''.(float) $transaction['shipping'].'\';';
         }
 

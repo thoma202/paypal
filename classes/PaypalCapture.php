@@ -139,7 +139,7 @@ class PaypalCapture extends ObjectModel
         } else {
             $query = new DbQuery();
             $query->from(self::$definition['table']);
-            $query->where('id_order = '.$this->id_order);
+            $query->where('id_order = '.pSQL($this->id_order));
             $query->orderBy('date_add DESC');
         }
 

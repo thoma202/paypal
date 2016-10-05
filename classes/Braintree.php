@@ -157,8 +157,8 @@ class PrestaBraintree{
     {
 
         $sql = 'SELECT *
-FROM '._DB_PREFIX_.'paypal_braintree
-WHERE id_cart = '.$id_cart;
+        FROM '._DB_PREFIX_.'paypal_braintree
+        WHERE id_cart = '.pSQL($id_cart);
 
         $result = Db::getInstance()->getRow($sql);
         if(!empty($result['id_paypal_braintree']))

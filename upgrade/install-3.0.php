@@ -64,7 +64,7 @@ function upgrade_module_3_0($object, $install = false)
 
         foreach ($columns as $column) {
             if (!Db::getInstance()->ExecuteS('SHOW COLUMNS FROM `'._DB_PREFIX_.'paypal_order` LIKE \''.pSQL($column['name']).'\'')) {
-                Db::getInstance()->Execute('ALTER TABLE `'._DB_PREFIX_.'paypal_order` ADD `'.pSQL($column['name']).'` '.$column['type']);
+                Db::getInstance()->Execute('ALTER TABLE `'._DB_PREFIX_.'paypal_order` ADD `'.pSQL($column['name']).'` '.pSQL($column['type']));
             }
         }
 

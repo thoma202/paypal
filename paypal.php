@@ -664,7 +664,7 @@ class PayPal extends PaymentModule
     {
         if($params['newOrderStatus']->id == Configuration::get('PS_OS_CANCELED'))
         {
-            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.$params['id_order']);
+            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.pSQL($params['id_order']));
 
             if($transction_id)
             {
@@ -1232,7 +1232,7 @@ class PayPal extends PaymentModule
     public function hookDisplayOrderConfirmation()
     {
         $id_order = (int) Tools::getValue('id_order');
-        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.$id_order);
+        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.(int)$id_order);
         if(!isset($transactionId) || empty($transactionId))
         {
             return;
