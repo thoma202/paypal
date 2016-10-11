@@ -270,7 +270,7 @@ class PayPal extends PaymentModule
         }
 
         if (version_compare(_PS_VERSION_, '1.5.0.2', '>=')) {
-            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.$this->name.'\'');
+            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.pSQL($this->name).'\'');
             if (empty($version) === true) {
                 Db::getInstance()->execute('
                     UPDATE `'._DB_PREFIX_.'module` m
@@ -661,7 +661,7 @@ class PayPal extends PaymentModule
     {
         if($params['newOrderStatus']->id == Configuration::get('PS_OS_CANCELED'))
         {
-            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.$params['id_order']);
+            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.(int)$params['id_order']);
 
             if($transction_id)
             {
@@ -1229,7 +1229,7 @@ class PayPal extends PaymentModule
     public function hookDisplayOrderConfirmation()
     {
         $id_order = (int) Tools::getValue('id_order');
-        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.$id_order);
+        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.(int)$id_order);
         if(!isset($transactionId) || empty($transactionId))
         {
             return;
@@ -1729,8 +1729,8 @@ class PayPal extends PaymentModule
         }
 
         $sql = 'SELECT transaction
-FROM '._DB_PREFIX_.'paypal_braintree
-WHERE id_order = '.$id_order;
+            FROM '._DB_PREFIX_.'paypal_braintree
+            WHERE id_order = '.(int)$id_order;
 
         $transaction_braintree = Db::getInstance()->getValue($sql);
 
@@ -1968,10 +1968,13 @@ WHERE id_order = '.$id_order;
 
     private function loadLangDefault()
     {
-
         if (Configuration::get('PAYPAL_UPDATED_COUNTRIES_OK')) {
             $this->iso_code = Tools::strtoupper($this->context->language->iso_code);
-            $this->default_country = Country::getByIso($this->iso_code);
+            if($this->iso_code == 'EN')
+                $iso_code = 'GB';
+            else
+                $iso_code = $this->iso_code;
+            $this->default_country = Country::getByIso($iso_code);
         } else {
             $this->default_country = (int) Configuration::get('PS_COUNTRY_DEFAULT');
             $country = new Country($this->default_country);
@@ -2233,8 +2236,8 @@ WHERE id_order = '.$id_order;
     {
         if($this->context_modified)
         {
-            $this->context->cart->id_currency = $id_currency_origin_cart;
-            $this->context->cookie->id_currency = $id_currency_origin_cookie;
+            $this->context->cart->id_currency = $this->id_currency_origin_cart;
+            $this->context->cookie->id_currency = $this->id_currency_origin_cookie;
         }
     }
 

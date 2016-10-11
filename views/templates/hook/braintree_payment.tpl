@@ -86,7 +86,7 @@
 				dataCollector: {
 					kount: {environment: {/literal}{if $sandbox_mode}'sandbox'{else}'production'{/if}{literal}}
 				},
-				onReady : function(braintreeInstance) {
+				onReady : function(braintreeInstance) {
 					//On remplit un champ hidden deviceData du fomulaire avec braintreeInstance.deviceData
 					$('#deviceData').val(braintreeInstance.deviceData);
 				},

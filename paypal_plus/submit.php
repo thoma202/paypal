@@ -207,7 +207,7 @@ function displayAjax($context)
 
                 if(isset($payment->payment_instruction))
                 {
-                    $order = Order::getOrderByCartId($this->id_cart);
+                    $order = Order::getOrderByCartId($id_cart);
                     $paypal_plus_pui = new PaypalPlusPui();
                     $paypal_plus_pui->id_order = $order->id;
                     $paypal_plus_pui->pui_informations = Tools::jsonEncode($payment->payment_instruction);
