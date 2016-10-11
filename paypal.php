@@ -37,6 +37,7 @@ include_once _PS_MODULE_DIR_.'paypal/paypal_login/paypal_login.php';
 include_once _PS_MODULE_DIR_.'paypal/paypal_login/PayPalLoginUser.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/PaypalCapture.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/AuthenticatePaymentMethods.php';
+include_once _PS_MODULE_DIR_.'paypal/classes/TLSVerificator.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/PaypalPlusPui.php';
 
 define('WPS', 1); //Paypal Integral
@@ -295,10 +296,19 @@ class PayPal extends PaymentModule
                 $this->context->smarty->assign('paypal_authorization', true);
             }
 
+            $isECS = false;
+            if(isset($this->context->cookie->express_checkout))
+            {
+                $cookie_ECS = unserialize($this->context->cookie->express_checkout);
+                if(isset($cookie_ECS['token']) && isset($cookie_ECS['payer_id']))
+                {
+                    $isECS = true;
+                }
+            }
+
             if (($order_process_type == 1) && ((int) $payment_method == HSS) && !$this->useMobile()) {
                 $this->context->smarty->assign('paypal_order_opc', true);
-            } elseif (($order_process_type == 1) && ((bool) Tools::getValue('isPaymentStep')
-                == true)) {
+            } elseif (($order_process_type == 1) && ((bool) Tools::getValue('isPaymentStep') == true || $isECS)) {
                 $shop_url = PayPal::getShopDomainSsl(true, true);
                 if (version_compare(_PS_VERSION_, '1.5', '<')) {
                     $link = $shop_url._MODULE_DIR_.$this->name.'/express_checkout/payment.php';
@@ -413,7 +423,7 @@ class PayPal extends PaymentModule
             'PayPal_plus_client' => Configuration::get('PAYPAL_PLUS_CLIENT_ID'),
             'PayPal_plus_secret' => Configuration::get('PAYPAL_PLUS_SECRET'),
             'PayPal_plus_webprofile' => (Configuration::get('PAYPAL_WEB_PROFILE_ID') != '0') ? Configuration::get('PAYPAL_WEB_PROFILE_ID') : 0,
-            'PayPal_version_tls_checked' => Configuration::get('PAYPAL_VERSION_TLS_CHECKED'),
+            //'PayPal_version_tls_checked' => $tls_version,
             'Presta_version' => _PS_VERSION_,
             'Currencies' => Currency::getCurrencies(),
             'PayPal_account_braintree' => (array) Tools::jsonDecode(Configuration::get('PAYPAL_ACCOUNT_BRAINTREE')),
@@ -546,7 +556,7 @@ class PayPal extends PaymentModule
                 return 'he_IL';
             case 'id':
                 return 'id_ID';
-            case 'il':
+            case 'it':
                 return 'it_IT';
             case 'jp':
                 return 'ja_JP';
