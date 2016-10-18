@@ -37,11 +37,14 @@ include_once _PS_MODULE_DIR_.'paypal/paypal_login/paypal_login.php';
 include_once _PS_MODULE_DIR_.'paypal/paypal_login/PayPalLoginUser.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/PaypalCapture.php';
 include_once _PS_MODULE_DIR_.'paypal/classes/AuthenticatePaymentMethods.php';
+include_once _PS_MODULE_DIR_.'paypal/classes/TLSVerificator.php';
+include_once _PS_MODULE_DIR_.'paypal/classes/PaypalPlusPui.php';
 
 define('WPS', 1); //Paypal Integral
 define('HSS', 2); //Paypal Integral Evolution
 define('ECS', 4); //Paypal Option +
 define('PPP', 5); //Paypal Plus
+define('PVZ', 6); //Braintree ONLY
 
 /* Tracking */
 define('TRACKING_INTEGRAL_EVOLUTION', 'FR_PRESTASHOP_H3S');
@@ -80,7 +83,7 @@ class PayPal extends PaymentModule
     public $iso_code;
     public $default_country;
     public $paypal_logos;
-    public $module_key = '646dcec2b7ca20c4e9a5aebbbad98d7e';
+    public $module_key = '336225a5988ad434b782f2d868d7bfcd';
 
     const BACKWARD_REQUIREMENT = '0.4';
     const ONLY_PRODUCTS = 1;
@@ -95,7 +98,7 @@ class PayPal extends PaymentModule
     {
         $this->name = 'paypal';
         $this->tab = 'payments_gateways';
-        $this->version = '3.10.5';
+        $this->version = '3.11.1';
         $this->author = 'PrestaShop';
         $this->is_eu_compatible = 1;
 
@@ -128,25 +131,35 @@ class PayPal extends PaymentModule
         } else {
             $this->checkMobileNeeds();
         }
-
     }
 
     public function install()
     {
-        if (!parent::install() || !$this->registerHook('payment') || !$this->registerHook('paymentReturn')
-            ||
-            !$this->registerHook('shoppingCartExtra') || !$this->registerHook('backBeforePayment')
-            || !$this->registerHook('rightColumn') ||
-            !$this->registerHook('cancelProduct') || !$this->registerHook('productFooter')
-            || !$this->registerHook('header') ||
-            !$this->registerHook('adminOrder') || !$this->registerHook('backOfficeHeader')) {
+        if (!parent::install()
+            || !$this->registerHook('payment')
+            || !$this->registerHook('paymentReturn')
+            || !$this->registerHook('shoppingCartExtra')
+            || !$this->registerHook('backBeforePayment')
+            || !$this->registerHook('rightColumn')
+            || !$this->registerHook('cancelProduct')
+            || !$this->registerHook('productFooter')
+            || !$this->registerHook('header')
+            || !$this->registerHook('adminOrder')
+            || !$this->registerHook('backOfficeHeader')
+            || !$this->registerHook('displayPDFInvoice')
+            || !$this->registerHook('PDFInvoice')) {
+
             return false;
         }
 
         if ((_PS_VERSION_ >= '1.5') && (!$this->registerHook('displayMobileHeader')
-            ||
-            !$this->registerHook('displayMobileShoppingCartTop') || !$this->registerHook('displayMobileAddToCartTop')
-            || !$this->registerHook('displayPaymentEU') || !$this->registerHook('actionPSCleanerGetModulesTables'))) {
+            || !$this->registerHook('displayMobileShoppingCartTop')
+            || !$this->registerHook('displayMobileAddToCartTop')
+            || !$this->registerHook('displayPaymentEU')
+            || !$this->registerHook('actionPSCleanerGetModulesTables')
+            || !$this->registerHook('actionOrderStatusPostUpdate')
+            || !$this->registerHook('displayOrderConfirmation')
+            )) {
             return false;
         }
 
@@ -179,7 +192,7 @@ class PayPal extends PaymentModule
     public function runUpgrades($install = false)
     {
         if (version_compare(_PS_VERSION_, '1.5', '<')) {
-            foreach (array('2.8', '3.0', '3.7', '3.8.3', '3.9', '3.10.1', '3.10.4') as $version) {
+            foreach (array('2.8', '3.0', '3.7', '3.8.3', '3.9', '3.10.1', '3.10.4','3.10.10') as $version) {
                 $file = dirname(__FILE__).'/upgrade/install-'.$version.'.php';
                 if (version_compare(Configuration::get('PAYPAL_VERSION'), $version, '<') && file_exists($file)) {
                     include_once $file;
@@ -235,6 +248,11 @@ class PayPal extends PaymentModule
             return true;
         }
 
+        if ($payment_method == PVZ)
+        {
+            return true;
+        }
+
         return false;
     }
 
@@ -253,7 +271,7 @@ class PayPal extends PaymentModule
         }
 
         if (version_compare(_PS_VERSION_, '1.5.0.2', '>=')) {
-            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.$this->name.'\'');
+            $version = Db::getInstance()->getValue('SELECT version FROM `'._DB_PREFIX_.'module` WHERE name = \''.pSQL($this->name).'\'');
             if (empty($version) === true) {
                 Db::getInstance()->execute('
                     UPDATE `'._DB_PREFIX_.'module` m
@@ -278,10 +296,19 @@ class PayPal extends PaymentModule
                 $this->context->smarty->assign('paypal_authorization', true);
             }
 
+            $isECS = false;
+            if(isset($this->context->cookie->express_checkout))
+            {
+                $cookie_ECS = unserialize($this->context->cookie->express_checkout);
+                if(isset($cookie_ECS['token']) && isset($cookie_ECS['payer_id']))
+                {
+                    $isECS = true;
+                }
+            }
+
             if (($order_process_type == 1) && ((int) $payment_method == HSS) && !$this->useMobile()) {
                 $this->context->smarty->assign('paypal_order_opc', true);
-            } elseif (($order_process_type == 1) && ((bool) Tools::getValue('isPaymentStep')
-                == true)) {
+            } elseif (($order_process_type == 1) && ((bool) Tools::getValue('isPaymentStep') == true || $isECS)) {
                 $shop_url = PayPal::getShopDomainSsl(true, true);
                 if (version_compare(_PS_VERSION_, '1.5', '<')) {
                     $link = $shop_url._MODULE_DIR_.$this->name.'/express_checkout/payment.php';
@@ -347,6 +374,10 @@ class PayPal extends PaymentModule
 
     public function getContent()
     {
+        if(Tools::getIsset('BRAINTREE_ENABLED'))
+        {
+            Configuration::updateValue('VZERO_ENABLED',1);
+        }
         $this->_postProcess();
 
         if (($id_lang = Language::getIdByIso('EN')) == 0) {
@@ -360,6 +391,7 @@ class PayPal extends PaymentModule
             'PayPal_HSS' => (int) HSS,
             'PayPal_ECS' => (int) ECS,
             'PayPal_PPP' => (int) PPP,
+            'PayPal_PVZ' => (int) PVZ,
             'PP_errors' => $this->_errors,
             'PayPal_logo' => $this->paypal_logos->getLogos(),
             'PayPal_allowed_methods' => $this->getPaymentMethods(),
@@ -391,6 +423,16 @@ class PayPal extends PaymentModule
             'PayPal_plus_client' => Configuration::get('PAYPAL_PLUS_CLIENT_ID'),
             'PayPal_plus_secret' => Configuration::get('PAYPAL_PLUS_SECRET'),
             'PayPal_plus_webprofile' => (Configuration::get('PAYPAL_WEB_PROFILE_ID') != '0') ? Configuration::get('PAYPAL_WEB_PROFILE_ID') : 0,
+            //'PayPal_version_tls_checked' => $tls_version,
+            'Presta_version' => _PS_VERSION_,
+            'Currencies' => Currency::getCurrencies(),
+            'PayPal_account_braintree' => (array) Tools::jsonDecode(Configuration::get('PAYPAL_ACCOUNT_BRAINTREE')),
+            'Currency_default'=> Configuration::get('PS_CURRENCY_DEFAULT'),
+            'PayPal_braintree_public_key'=> Configuration::get('PAYPAL_BRAINTREE_PUBLIC_KEY'),
+            'PayPal_braintree_private_key'=> Configuration::get('PAYPAL_BRAINTREE_PRIVATE_KEY'),
+            'PayPal_braintree_merchant_id'=> Configuration::get('PAYPAL_BRAINTREE_MERCHANT_ID'),
+            'PayPal_check3Dsecure'=> Configuration::get('PAYPAL_USE_3D_SECURE'),
+            'PayPal_braintree_enabled'=> Configuration::get('PAYPAL_BRAINTREE_ENABLED'),
         ));
 
         $this->getTranslations();
@@ -407,7 +449,7 @@ class PayPal extends PaymentModule
     /**
      * Hooks methods
      */
-    public function hookHeader()
+    public function hookHeader($params)
     {
         if ($this->useMobile()) {
             $id_hook = (int) Configuration::get('PS_MOBILE_HOOK_HEADER_ID');
@@ -423,6 +465,8 @@ class PayPal extends PaymentModule
         if (isset($this->context->cart) && $this->context->cart->id) {
             $this->context->smarty->assign('id_cart', (int) $this->context->cart->id);
         }
+
+
 
         /* Added for PrestaBox */
         if (method_exists($this->context->controller, 'addCSS')) {
@@ -474,6 +518,10 @@ class PayPal extends PaymentModule
             $process .= '<script src="https://www.paypalobjects.com/webstatic/ppplus/ppplus.min.js" type="text/javascript"></script>';
         }
 
+        if ((Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ || Configuration::get('PAYPAL_BRAINTREE_ENABLED')) && version_compare(PHP_VERSION, '5.4.0', '>=') && $this->context->controller instanceof OrderOpcController) {
+            $process .= '<script id="file_braintree" src="https://js.braintreegateway.com/js/braintree-2.24.0.min.js"></script>';
+        }
+
         return $process;
     }
 
@@ -508,7 +556,7 @@ class PayPal extends PaymentModule
                 return 'he_IL';
             case 'id':
                 return 'id_ID';
-            case 'il':
+            case 'it':
                 return 'it_IT';
             case 'jp':
                 return 'ja_JP';
@@ -619,6 +667,21 @@ class PayPal extends PaymentModule
         return $content.$this->renderExpressCheckoutForm('product');
     }
 
+    public function hookActionOrderStatusPostUpdate($params)
+    {
+        if($params['newOrderStatus']->id == Configuration::get('PS_OS_CANCELED'))
+        {
+            $transction_id = Db::getInstance()->getValue('SELECT transaction FROM '._DB_PREFIX_.'paypal_braintree WHERE id_order = '.(int)$params['id_order']);
+
+            if($transction_id)
+            {
+                include_once _PS_MODULE_DIR_.'paypal/classes/Braintree.php';
+                $braintree = new PrestaBraintree();
+                $braintree->void($transction_id);
+            }
+        }
+    }
+    
     public function hookPayment($params)
     {
         if (!$this->canBeUsed()) {
@@ -650,6 +713,42 @@ class PayPal extends PaymentModule
             'PayPal_lang_code' => (isset($iso_lang[$this->context->language->iso_code]))
             ? $iso_lang[$this->context->language->iso_code] : 'en_US',
         ));
+
+        if ($method == PVZ || Configuration::get('PAYPAL_BRAINTREE_ENABLED')) {
+            if(version_compare(PHP_VERSION, '5.4.0', '<'))
+            {
+                return;
+            }
+
+            $id_account_braintree = $this->set_good_context();
+
+            $currency = new Currency($this->context->cart->id_currency);
+            include_once _PS_MODULE_DIR_.'paypal/classes/Braintree.php';
+
+            $braintree = new PrestaBraintree();
+            $clientToken = $braintree->createToken($id_account_braintree);
+            $this->reset_context();
+
+            
+            
+            if(!$clientToken)
+            {
+                return;
+            }
+
+            $this->context->smarty->assign(array(
+                'braintreeToken'=>$clientToken,
+                'braintreeSubmitUrl'=>$this->context->link->getModuleLink('paypal','braintreesubmit'),
+                'braintreeAmount'=>$this->context->cart->getOrderTotal(),
+                'check3Dsecure'=>Configuration::get('PAYPAL_USE_3D_SECURE'),
+            ));
+            $return_braintree = $this->fetchTemplate('braintree_payment.tpl');
+
+        }
+        else
+        {
+            $return_braintree = '';
+        }
 
         if ($method == HSS) {
             $billing_address = new Address($this->context->cart->id_address_invoice);
@@ -693,7 +792,7 @@ class PayPal extends PaymentModule
                 'payment_hss_template' => Configuration::get('PAYPAL_HSS_TEMPLATE'),
             ));
             $this->getTranslations();
-            return $this->fetchTemplate('integral_evolution_payment.tpl');
+            return $this->fetchTemplate('integral_evolution_payment.tpl').$return_braintree;
         } elseif ($method == WPS || $method == ECS) {
             $this->getTranslations();
             $this->context->smarty->assign(array(
@@ -708,25 +807,23 @@ class PayPal extends PaymentModule
                 'PayPal_in_context_checkout_merchant_id' => Configuration::get('PAYPAL_IN_CONTEXT_CHECKOUT_M_ID'),
             ));
 
-            return $this->fetchTemplate('express_checkout_payment.tpl');
+            return $this->fetchTemplate('express_checkout_payment.tpl').$return_braintree;
         } elseif ($method == PPP) {
-
             $CallApiPaypalPlus = new CallApiPaypalPlus();
             $CallApiPaypalPlus->setParams($params);
-
             $approuval_url = $CallApiPaypalPlus->getApprovalUrl();
-
             $this->context->smarty->assign(
                 array(
                     'approval_url' => $approuval_url,
                     'language' => $this->getLocalePayPalPlus(),
                     'country' => $this->getCountryCode(),
-                    'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox'
-                    : 'live',
+                    'mode' => Configuration::get('PAYPAL_SANDBOX') ? 'sandbox': 'live',
+                    'ajaxUrl' => $this->context->link->getModuleLink('paypal','pluspatch',array('id_cart'=>$this->context->cart->id,'id_payment'=>$CallApiPaypalPlus->id_payment)),
+                    'img_loader' => _PS_IMG_.'loader.gif',
                 )
             );
 
-            return $this->fetchTemplate('paypal_plus_payment.tpl');
+            return $this->fetchTemplate('paypal_plus_payment.tpl').$return_braintree;
         }
     }
 
@@ -781,7 +878,8 @@ class PayPal extends PaymentModule
             || (((int) Configuration::get('PAYPAL_PAYMENT_METHOD') == HSS) && !$this->context->getMobileDevice())
             || !Configuration::get('PAYPAL_EXPRESS_CHECKOUT_SHORTCUT')
             || !in_array(ECS, $this->getPaymentMethods())
-            || isset($this->context->cookie->express_checkout)) {
+            || isset($this->context->cookie->express_checkout)
+            || Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ) {
             return null;
         }
 
@@ -966,6 +1064,13 @@ class PayPal extends PaymentModule
 
     public function hookBackOfficeHeader()
     {
+        if (Configuration::get('PAYPAL_VERSION_TLS_LAST_UPDATE') < date('Ymd')) {
+            $paypal = new Paypal();
+            $ssl_verif = new TLSVerificator(true, $this);
+            Configuration::updateValue('PAYPAL_VERSION_TLS_CHECKED', $ssl_verif->getVersion());
+            Configuration::updateValue('PAYPAL_VERSION_TLS_LAST_UPDATE', date('Ymd'));
+        }
+
         if ((strcmp(Tools::getValue('configure'), $this->name) === 0) ||
             (strcmp(Tools::getValue('module_name'), $this->name) === 0)) {
             if (version_compare(_PS_VERSION_, '1.5', '<')) {
@@ -985,6 +1090,7 @@ class PayPal extends PaymentModule
                 'PayPal_HSS' => (int) HSS,
                 'PayPal_ECS' => (int) ECS,
                 'PayPal_PPP' => (int) PPP,
+                'PayPal_PVZ' => (int) PVZ,
             ));
 
             return (isset($output) ? $output : null).$this->fetchTemplate('/views/templates/admin/header.tpl');
@@ -1130,6 +1236,27 @@ class PayPal extends PaymentModule
         return TRACKING_CODE;
     }
 
+    public function hookDisplayOrderConfirmation()
+    {
+        $id_order = (int) Tools::getValue('id_order');
+        $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.(int)$id_order);
+        if(!isset($transactionId) || empty($transactionId))
+        {
+            return;
+        }
+        $order = new Order($id_order);
+       
+        $price = Tools::displayPrice($order->total_paid_tax_incl, $this->context->currency);
+
+        $this->context->smarty->assign(array(
+            'transaction_id'=> $transactionId,
+            'order' => (array)$order,
+            'price' => $price,
+
+        ));
+        return $this->fetchTemplate('braintree_confirm.tpl');
+    }
+
     public function getTranslations()
     {
         $file = dirname(__FILE__).'/'._PAYPAL_TRANSLATIONS_XML_;
@@ -1270,8 +1397,12 @@ class PayPal extends PaymentModule
             FROM `'._DB_PREFIX_.'paypal_order`
             WHERE `id_order` = '.(int) $id_order);
 
-        return $paypal_order && ($paypal_order['payment_status'] == 'Completed' || $paypal_order['payment_status']
-            == 'approved') && $paypal_order['capture'] == 0;
+        $braintree_order = Db::getInstance()->getRow('
+            SELECT `transaction`
+            FROM `'._DB_PREFIX_.'paypal_braintree`
+            WHERE `id_order` = '.(int) $id_order);
+
+        return ($paypal_order && ($paypal_order['payment_status'] == 'Completed' || $paypal_order['payment_status'] == 'approved') && $paypal_order['capture'] == 0);
     }
 
     private function _needValidation($id_order)
@@ -1300,8 +1431,7 @@ class PayPal extends PaymentModule
             FROM `'._DB_PREFIX_.'paypal_order`
             WHERE `id_order` = '.(int) $id_order.' AND `capture` = 1');
 
-        return $result && $result['payment_method'] != HSS && $result['payment_status']
-            == 'Pending_capture';
+        return $result && ($result['payment_method'] != HSS && $result['payment_status'] == 'Pending_capture' || $result['payment_method'] == PVZ && $result['payment_status'] == 'authorized');
     }
 
     private function _preProcess()
@@ -1315,9 +1445,9 @@ class PayPal extends PaymentModule
             : false;
             $sandbox_mode = Tools::getValue('sandbox_mode') !== false ? (int) Tools::getValue('sandbox_mode')
             : false;
-
             if ($this->default_country === false || $sandbox_mode === false || $payment_capture
                 === false || $business === false || $payment_method === false) {
+
                 $this->_errors[] = $this->l('Some fields are empty.');
             } elseif ($business == 0) {
                 $this->_errors[] = $this->l('Credentials fields cannot be empty');
@@ -1337,6 +1467,12 @@ class PayPal extends PaymentModule
                     $this->_errors[] = $this->l('Business e-mail field cannot be empty');
                 }
 
+                $currency = new Currency(Configuration::get('PS_CURRENCY_DEFAULT'));
+                $account_braintree = Tools::getValue('account_braintree');
+                if ($payment_method == PVZ && empty($account_braintree[$currency->iso_code])) {
+                    $this->_errors[] = $this->l('Braintree Account '.$currency->iso_code.' field cannot be empty');
+                }
+
             }
         }
 
@@ -1349,6 +1485,12 @@ class PayPal extends PaymentModule
             if (Tools::getValue('paypal_country_only')) {
                 Configuration::updateValue('PAYPAL_COUNTRY_DEFAULT', (int) Tools::getValue('paypal_country_only'));
             } elseif ($this->_preProcess()) {
+
+                if(Configuration::get('PAYPAL_SANDBOX') != Tools::getValue('sandbox_mode'))
+                {
+                    unset($this->context->cookie->paypal_access_token_time_max);
+                    unset($this->context->cookie->paypal_access_token_access_token);
+                }
                 Configuration::updateValue('PAYPAL_BUSINESS', (int) Tools::getValue('business'));
                 Configuration::updateValue('PAYPAL_PAYMENT_METHOD', (int) Tools::getValue('paypal_payment_method'));
                 Configuration::updateValue('PAYPAL_API_USER', trim(Tools::getValue('api_username')));
@@ -1365,12 +1507,23 @@ class PayPal extends PaymentModule
                 Configuration::updateValue('PAYPAL_LOGIN_SECRET', Tools::getValue('paypal_login_client_secret'));
                 Configuration::updateValue('PAYPAL_LOGIN_TPL', (int) Tools::getValue('paypal_login_client_template'));
 
+                Configuration::updateValue('PAYPAL_BRAINTREE_ENABLED',Tools::getValue('braintree_enabled'));
+                Configuration::updateValue('PAYPAL_BRAINTREE_PUBLIC_KEY', Tools::getValue('braintree_public_key'));
+                Configuration::updateValue('PAYPAL_BRAINTREE_PRIVATE_KEY', Tools::getValue('braintree_private_key'));
+                Configuration::updateValue('PAYPAL_BRAINTREE_MERCHANT_ID', Tools::getValue('braintree_merchant_id'));
+                Configuration::updateValue('PAYPAL_USE_3D_SECURE',Tools::getValue('check3Dsecure'));
+                
                 /* USE PAYPAL PLUS */
                 if ((int) Tools::getValue('paypal_payment_method') == 5) {
+                    
+                    $refresh_webprofile = Configuration::get('PAYPAL_PLUS_CLIENT_ID') != Tools::getValue('client_id') || Configuration::get('PAYPAL_PLUS_SECRET') != Tools::getValue('secret');
+
                     Configuration::updateValue('PAYPAL_PLUS_CLIENT_ID', Tools::getValue('client_id'));
                     Configuration::updateValue('PAYPAL_PLUS_SECRET', Tools::getValue('secret'));
 
-                    if ((int) Tools::getValue('paypalplus_webprofile') == 1) {
+                    
+
+                    if ((int) Tools::getValue('paypalplus_webprofile') == 1 || $refresh_webprofile) {
 
                         $ApiPaypalPlus = new ApiPaypalPlus();
                         $idWebProfile = $ApiPaypalPlus->getWebProfile();
@@ -1399,6 +1552,9 @@ class PayPal extends PaymentModule
                     Configuration::updateValue('PAYPAL_HSS_TEMPLATE', Tools::getValue('integral_evolution_template'));
                 }
 
+                $account_brain = Tools::getValue('account_braintree');
+                Configuration::updateValue('PAYPAL_ACCOUNT_BRAINTREE',Tools::jsonEncode($account_brain));
+
                 $this->context->smarty->assign('PayPal_save_success', true);
             } else {
                 $this->_html = $this->displayError(implode('<br />', $this->_errors)); // Not displayed at this time
@@ -1419,7 +1575,21 @@ class PayPal extends PaymentModule
 
         $payment_method = Configuration::get('PAYPAL_PAYMENT_METHOD');
 
-        if ($payment_method != PPP) {
+        if($payment_method == PVZ) {
+            if(!$amt)
+            {
+                $amt = Db::getInstance()->getValue('
+                    SELECT total_paid
+                    FROM `'._DB_PREFIX_.'orders` o
+                    WHERE o.`id_order` = '.(int) $id_order);
+            }
+
+
+            include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
+            $braintree = new PrestaBraintree();
+            $result = $braintree->refund($id_transaction,$amt);
+            return $result;
+        } elseif ($payment_method != PPP) {
 
             if (!$amt) {
                 $params = array('TRANSACTIONID' => $id_transaction, 'REFUNDTYPE' => 'Full');
@@ -1534,9 +1704,7 @@ class PayPal extends PaymentModule
                 $message .= $key.': '.$value." \r\n";
             }
         }
-        if ((array_key_exists('ACK', $response) && $response['ACK'] == 'Success'
-            && $response['REFUNDTRANSACTIONID'] != '') || (isset($response->state)
-            && $response->state == 'completed')) {
+        if ((array_key_exists('ACK', $response) && $response['ACK'] == 'Success' && $response['REFUNDTRANSACTIONID'] != '') || (isset($response->state) && $response->state == 'completed') || (Configuration::get('PAYPAL_PAYMENT_METHOD') == PVZ && $response)) {
             $message .= $this->l('PayPal refund successful!');
             if (!Db::getInstance()->Execute('UPDATE `'._DB_PREFIX_.'paypal_order` SET `payment_status` = \'Refunded\' WHERE `id_order` = '.(int) $id_order)) {
                 die(Tools::displayError('Error when updating PayPal database'));
@@ -1570,64 +1738,115 @@ class PayPal extends PaymentModule
             $capture_amount = (float) $order->total_paid;
         }
 
-        $complete = 'Complete';
-        if (!$is_complete) {
-            $complete = 'NotComplete';
-        }
+        $sql = 'SELECT transaction
+            FROM '._DB_PREFIX_.'paypal_braintree
+            WHERE id_order = '.(int)$id_order;
 
-        $paypal_lib = new PaypalLib();
-        $response = $paypal_lib->makeCall(
-            $this->getAPIURL(),
-            $this->getAPIScript(),
-            'DoCapture',
-            '&'.http_build_query(array('AMT' => $capture_amount, 'AUTHORIZATIONID' => $paypal_order['id_transaction'], 'CURRENCYCODE' => $currency->iso_code, 'COMPLETETYPE' => $complete), '', '&')
-        );
-        $message = $this->l('Capture operation result:').'<br>';
+        $transaction_braintree = Db::getInstance()->getValue($sql);
 
-        foreach ($response as $key => $value) {
-            $message .= $key.': '.$value.'<br>';
-        }
-
-        $capture = new PaypalCapture();
-        $capture->id_order = (int) $id_order;
-        $capture->capture_amount = (float) $capture_amount;
-
-        if ((array_key_exists('ACK', $response)) && ($response['ACK'] == 'Success')
-            && ($response['PAYMENTSTATUS'] == 'Completed')) {
-            $capture->result = pSQL($response['PAYMENTSTATUS']);
-            if ($capture->save()) {
-                if (!($capture->getRestToCapture($capture->id_order))) {
-                    //plus d'argent a capturer
-                    if (!Db::getInstance()->Execute(
-                        'UPDATE `'._DB_PREFIX_.'paypal_order`
-                        SET `capture` = 0, `payment_status` = \''.pSQL($response['PAYMENTSTATUS']).'\', `id_transaction` = \''.pSQL($response['TRANSACTIONID']).'\'
-                        WHERE `id_order` = '.(int) $id_order
-                    )
-                    ) {
-                        die(Tools::displayError('Error when updating PayPal database'));
-                    }
-
-                    $order_history = new OrderHistory();
-                    $order_history->id_order = (int) $id_order;
-
-                    if (version_compare(_PS_VERSION_, '1.5', '<')) {
-                        $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int) $id_order);
-                    } else {
-                        $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
-                    }
-
-                    $order_history->addWithemail();
-                    $message .= $this->l('Order finished with PayPal!');
-                }
+        if($transaction_braintree)
+        {
+            include_once(_PS_MODULE_DIR_.'paypal/classes/Braintree.php');
+            $braintree = new PrestaBraintree();
+            $result_transaction = $braintree->submitForSettlement($transaction_braintree,$amount);
+            if(!$result_transaction)
+            {
+                return false;
             }
-        } elseif (isset($response['PAYMENTSTATUS'])) {
-            $capture->result = pSQL($response['PAYMENTSTATUS']);
-            $capture->save();
-            $message .= $this->l('Transaction error!');
+
+            $captureBraintree = new PaypalCapture();
+            $captureBraintree->id_order = (int)$id_order;
+            $captureBraintree->capture_amount = (float)$capture_amount;
+            $captureBraintree->result = 'Completed';
+            $captureBraintree->save();
+
+
+            if (!($captureBraintree->getRestToCapture($captureBraintree->id_order))) {
+                //plus d'argent a capturer
+                if (!Db::getInstance()->Execute(
+                    'UPDATE `' . _DB_PREFIX_ . 'paypal_order`
+                        SET `capture` = 0, `payment_status` = \'Completed\'
+                        WHERE `id_order` = ' . (int)$id_order
+                )
+                ) {
+                    die(Tools::displayError('Error when updating PayPal database'));
+                }
+
+                $order_history = new OrderHistory();
+                $order_history->id_order = (int)$id_order;
+
+                if (version_compare(_PS_VERSION_, '1.5', '<')) {
+                    $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int)$id_order);
+                } else {
+                    $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
+                }
+
+                $order_history->addWithemail();
+                $message .= $this->l('Order finished with PayPal!');
+            }
+
         }
+        else
+        {
+            $complete = 'Complete';
+            if (!$is_complete) {
+                $complete = 'NotComplete';
+            }
 
-        $this->_addNewPrivateMessage((int) $id_order, $message);
+            $paypal_lib = new PaypalLib();
+            $response = $paypal_lib->makeCall(
+                $this->getAPIURL(),
+                $this->getAPIScript(),
+                'DoCapture',
+                '&' . http_build_query(array('AMT' => $capture_amount, 'AUTHORIZATIONID' => $paypal_order['id_transaction'], 'CURRENCYCODE' => $currency->iso_code, 'COMPLETETYPE' => $complete), '', '&')
+            );
+            $message = $this->l('Capture operation result:') . '<br>';
 
+            foreach ($response as $key => $value) {
+                $message .= $key . ': ' . $value . '<br>';
+            }
+
+            $capture = new PaypalCapture();
+            $capture->id_order = (int)$id_order;
+            $capture->capture_amount = (float)$capture_amount;
+
+            if ((array_key_exists('ACK', $response)) && ($response['ACK'] == 'Success')
+                && ($response['PAYMENTSTATUS'] == 'Completed')
+            ) {
+                $capture->result = pSQL($response['PAYMENTSTATUS']);
+                if ($capture->save()) {
+                    if (!($capture->getRestToCapture($capture->id_order))) {
+                        //plus d'argent a capturer
+                        if (!Db::getInstance()->Execute(
+                            'UPDATE `' . _DB_PREFIX_ . 'paypal_order`
+                        SET `capture` = 0, `payment_status` = \'' . pSQL($response['PAYMENTSTATUS']) . '\', `id_transaction` = \'' . pSQL($response['TRANSACTIONID']) . '\'
+                        WHERE `id_order` = ' . (int)$id_order
+                        )
+                        ) {
+                            die(Tools::displayError('Error when updating PayPal database'));
+                        }
+
+                        $order_history = new OrderHistory();
+                        $order_history->id_order = (int)$id_order;
+
+                        if (version_compare(_PS_VERSION_, '1.5', '<')) {
+                            $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), (int)$id_order);
+                        } else {
+                            $order_history->changeIdOrderState(Configuration::get('PS_OS_WS_PAYMENT'), $order);
+                        }
+
+                        $order_history->addWithemail();
+                        $message .= $this->l('Order finished with PayPal!');
+                    }
+                }
+            } elseif (isset($response['PAYMENTSTATUS'])) {
+                $capture->result = pSQL($response['PAYMENTSTATUS']);
+                $capture->save();
+                $message .= $this->l('Transaction error!');
+            }
+
+            $this->_addNewPrivateMessage((int)$id_order, $message);
+        }
         Tools::redirect($_SERVER['HTTP_REFERER']);
     }
 
@@ -1759,10 +1978,13 @@ class PayPal extends PaymentModule
 
     private function loadLangDefault()
     {
-
         if (Configuration::get('PAYPAL_UPDATED_COUNTRIES_OK')) {
             $this->iso_code = Tools::strtoupper($this->context->language->iso_code);
-            $this->default_country = Country::getByIso($this->iso_code);
+            if($this->iso_code == 'EN')
+                $iso_code = 'GB';
+            else
+                $iso_code = $this->iso_code;
+            $this->default_country = Country::getByIso($iso_code);
         } else {
             $this->default_country = (int) Configuration::get('PS_COUNTRY_DEFAULT');
             $country = new Country($this->default_country);
@@ -2002,5 +2224,56 @@ class PayPal extends PaymentModule
         $this->context->smarty->assign(array(
             'paypal_cart_summary' => $this->display(__FILE__, 'views/templates/hook/paypal_cart_summary.tpl'),
         ));
+    }
+
+    public function set_good_context()
+    {
+        $account_braintree = Tools::jsonDecode(Configuration::get('PAYPAL_ACCOUNT_BRAINTREE'),true);
+        $currency = new Currency($this->context->cart->id_currency);
+        $this->context_modified = false;
+        $this->id_currency_origin_cart = $this->context->cart->id_currency;
+        $this->id_currency_origin_cookie = $this->context->cookie->id_currency;
+        if(empty($account_braintree[$currency->iso_code]))
+        {
+            $this->context->cart->id_currency = Configuration::get('PS_CURRENCY_DEFAULT');
+            $this->context->cookie->id_currency = Configuration::get('PS_CURRENCY_DEFAULT');
+            $this->context_modified = true;
+        }
+        return $account_braintree[$currency->iso_code];
+    }
+
+    public function reset_context()
+    {
+        if($this->context_modified)
+        {
+            $this->context->cart->id_currency = $this->id_currency_origin_cart;
+            $this->context->cookie->id_currency = $this->id_currency_origin_cookie;
+        }
+    }
+
+    // FOR PRESTASHOP 1.4
+    public function hookPDFInvoice($params)
+    {
+        return $this->hookDisplayPDFInvoice($params);
+    }
+
+    public function hookDisplayPDFInvoice($params)
+    {
+
+        $order_detail = PaypalPlusPui::getByIdOrder($params['object']->id_order);
+        $information = json_decode($order_detail['pui_informations'],true);
+        $tab = '<table style="border: solid 1pt black; padding:0 10pt">
+    <tr><td></td><td></td></tr>
+    <tr><td><b>'.$this->l('Bank name').'</b></td><td>'.$information['recipient_banking_instruction']['bank_name'].'</td></tr>
+    <tr><td><b>'.$this->l('Account holder name').'</b></td><td>'.$information['recipient_banking_instruction']['account_holder_name'].'</td></tr>
+    <tr><td><b>'.$this->l('IBAN').'</b></td><td>'.$information['recipient_banking_instruction']['international_bank_account_number'].'</td></tr>
+    <tr><td><b>'.$this->l('BIC').'</b></td><td>'.$information['recipient_banking_instruction']['bank_identifier_code'].'</td></tr>
+    <tr><td></td><td></td></tr>
+    <tr><td><b>'.$this->l('Amount due / currency').'</b></td><td>'.$information['amount']['value'].' '.$information['amount']['currency'].'</td></tr>
+    <tr><td><b>'.$this->l('Payment due date').'</b></td><td>'.$information['payment_due_date'].'</td></tr>
+    <tr><td><b>'.$this->l('reference').'</b></td><td>'.$information['reference_number'].'</td></tr>
+    <tr><td></td><td></td></tr>
+</table>';
+        return $tab;
     }
 }

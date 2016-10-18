@@ -219,6 +219,7 @@ class PaypalExpressCheckout extends Paypal
 
         // Set payment detail (reference)
         $this->_setPaymentDetails($fields);
+
         $this->callAPI($fields);
 
         $this->result += $fields;
@@ -255,6 +256,7 @@ class PaypalExpressCheckout extends Paypal
         $this->setPaymentValues($fields, $index, $total, $taxes);
 
         $id_address = (int) $this->context->cart->id_address_delivery;
+
         if (($id_address == 0) && ($this->context->customer)) {
             $id_address = Address::getFirstCustomerAddressId($this->context->customer->id);
         }

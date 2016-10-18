@@ -25,7 +25,8 @@
  */
 
 include_once dirname(__FILE__).'/../../../config/config.inc.php';
-include_once dirname(__FILE__).'/../../../init.php';
+include_once _PS_ROOT_DIR_.'/init.php';
+
 
 /*
  * Init var
@@ -202,6 +203,14 @@ function displayAjax($context)
                         $transaction
                     );
                     $return['error'][] = $paypal->l('An error occured during the payment');
+                }
+
+                if(isset($payment->payment_instruction))
+                {
+                    $order = Order::getOrderByCartId($id_cart);
+                    $paypal_plus_pui = new PaypalPlusPui();
+                    $paypal_plus_pui->id_order = $order->id;
+                    $paypal_plus_pui->pui_informations = Tools::jsonEncode($payment->payment_instruction);
                 }
             } elseif ($submit == 'confirmCancel') {
 

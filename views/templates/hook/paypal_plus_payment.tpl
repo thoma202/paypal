@@ -30,13 +30,29 @@
     <script type="application/javascript">
     
         var ppp = PAYPAL.apps.PPP({
-            "approvalUrl": "{/literal}{$approval_url}{literal}",
+            "approvalUrl": "{/literal}{$approval_url|escape:'UTF-8'}{literal}",
             "placeholder": "ppplus",
-            "mode": "{/literal}{$mode}{literal}",
-            "language": "{/literal}{$language}{literal}",
-            "country": "{/literal}{$country}{literal}",
+            "mode": "{/literal}{$mode|escape:'htmlall':'UTF-8'}{literal}",
+            {/literal}{if $mode == 'sandbox'}"showPuiOnSandbox": "true",{/if}{literal}
+
+            "language": "{/literal}{$language|escape:'htmlall':'UTF-8'}{literal}",
+            "country": "{/literal}{$country|escape:'htmlall':'UTF-8'}{literal}",
+            "onContinue" : function () {
+                $('#ppplus iframe').slideUp();
+                $('#ppplus').html('<img style="display:block;margin:15px auto;" src="{/literal}{$img_loader}{literal}"/>');
+                doPatch(ppp);
+            }
         });
-   
+
+        function doPatch(ppp) {
+            jQuery.ajax({
+                url : "{/literal}{$ajaxUrl}{literal}",
+                complete: function(){
+                   ppp.doCheckout();
+               }
+
+            });
+        }
     </script>
 {/literal}
 

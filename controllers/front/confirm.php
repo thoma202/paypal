@@ -45,7 +45,7 @@ class PayPalConfirmModuleFrontController extends ModuleFrontController
         $this->context = Context::getContext();
         $this->id_module = (int) Tools::getValue('id_module');
 
-        $currency = new Currency((int) $this->context->cart->id_currency);
+        //$currency = new Currency((int) $this->context->cart->id_currency);
 
         $this->module->assignCartSummary();
 

@@ -25,7 +25,7 @@
  */
 
 include_once dirname(__FILE__).'/../../../config/config.inc.php';
-include_once dirname(__FILE__).'/../../../init.php';
+include_once _PS_ROOT_DIR_.'/init.php';
 
 include_once _PS_MODULE_DIR_.'paypal/express_checkout/process.php';
 include_once _PS_MODULE_DIR_.'paypal/express_checkout/submit.php';
@@ -93,7 +93,7 @@ function setCustomerAddress($ppec, $customer, $id = null)
         $address->alias = 'Paypal_Address';
     }
 
-    $name = $ppec->result['PAYMENTREQUEST_0_SHIPTONAME'];
+    $name = trim($ppec->result['PAYMENTREQUEST_0_SHIPTONAME']);
     $name = explode(' ', $name);
     if (isset($name[1])) {
         $firstname = $name[0];
@@ -209,6 +209,8 @@ if ($request_type && $ppec->type) {
     }
 
 } elseif (!empty($ppec->token) && ($ppec->token == $token) && ($ppec->payer_id = $payer_id)) {
+
+
     //If a token exist with payer_id, then we are back from the PayPal API
     /* Get payment infos from paypal */
     $ppec->getExpressCheckout();
@@ -272,10 +274,18 @@ if ($request_type && $ppec->type) {
 
         /* Create Order */
         if ($customer->id && $address->id) {
-            $ppec->context->cart->id_customer = $customer->id;
-            $ppec->context->cart->id_address_delivery = $address->id;
-            $ppec->context->cart->id_address_invoice = $address->id;
-            $ppec->context->cart->id_guest = $ppec->context->cookie->id_guest;
+            if($ppec->type != 'payment_cart') {
+                $ppec->context->cart->id_customer = $customer->id;
+                if(version_compare(_PS_VERSION_, '1.5', '<')){
+                    $ppec->context->cart->id_address_delivery = $address->id;
+                    $ppec->context->cart->id_address_invoice = $address->id;
+                }else{
+                    $ppec->context->cart->updateAddressId($ppec->context->cart->id_address_delivery,$address->id);
+                    $ppec->context->cart->updateAddressId($ppec->context->cart->id_address_invoice,$address->id);
+                }
+                
+                $ppec->context->cart->id_guest = $ppec->context->cookie->id_guest;
+            }
 
             if (!$ppec->context->cart->update()) {
                 $ppec->logs[] = $ppec->l('Cannot update existing cart');
@@ -342,7 +352,7 @@ function validateOrder($customer, $cart, $ppec)
     $ppec->validateOrder(
         (int) $cart->id,
         $payment_type,
-        $order_total,
+        $transaction['total_paid'],
         $ppec->displayName,
         $message,
         $transaction,
@@ -352,7 +362,6 @@ function validateOrder($customer, $cart, $ppec)
         $ppec->context->shop
     );
 }
-
 /* If Previous steps succeed, ready (means 'ready to pay') will be set to true */
 if ($ppec->ready && !empty($ppec->token) && (Tools::isSubmit('confirmation') || $ppec->type == 'payment_cart')) {
     /* Check modification on the product cart / quantity */
