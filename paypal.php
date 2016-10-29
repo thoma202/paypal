@@ -645,9 +645,9 @@ class PayPal extends PaymentModule
         return true;
     }
 
-    public function hookDisplayMobileHeader()
+    public function hookDisplayMobileHeader($params = null)
     {
-        return $this->hookHeader();
+        return $this->hookHeader($params);
     }
 
     public function hookDisplayMobileShoppingCartTop()
