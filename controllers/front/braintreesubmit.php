@@ -118,7 +118,7 @@ class PayPalBraintreeSubmitModuleFrontController extends ModuleFrontController
 
     public function redirectConfirmation($id_paypal,$id_cart,$id_order)
     {
-        Tools::redirect($this->context->link->getPageLink('order-confirmation.php?id_module='.$id_paypal.'&id_cart='.$id_cart.'&id_order='.$id_order.'&key='.Context::getContext()->customer->secure_key));
+        Tools::redirect($this->context->link->getPageLink('order-confirmation.php?id_module='.$id_paypal.'&id_cart='.$id_cart.'&id_order='.$id_order.'&key='.Context::getContext()->customer->secure_key.'&braintree=1'));
     }
     
     public function getDetailsTransaction($transaction_id,$status)

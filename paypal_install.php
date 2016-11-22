@@ -145,8 +145,8 @@ class PayPalInstall
         Configuration::updateValue('PAYPAL_USE_3D_SECURE',1);
         // PayPal v3 configuration
         Configuration::updateValue('PAYPAL_EXPRESS_CHECKOUT_SHORTCUT', 1);
-        $paypal = new Paypal();
-        $ssl_verif = new TLSVerificator(true, $paypal);
+        //$paypal = new Paypal();
+        //$ssl_verif = new TLSVerificator(true, $paypal);
         Configuration::updateValue('PAYPAL_VERSION_TLS_CHECKED', $ssl_verif->getVersion());
 
         Configuration::updateValue('VZERO_ENABLED',0);

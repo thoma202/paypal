@@ -37,6 +37,7 @@
         {/literal}{if $mode == 'sandbox'}"showPuiOnSandbox": true,{/if}{literal}
         "language": "{/literal}{$language|escape:'htmlall':'UTF-8'}{literal}",
         "country": "{/literal}{$country|escape:'htmlall':'UTF-8'}{literal}",
+        "buttonLocation": "outside",
         "onContinue" : function () {
             doPatch(ppp);
         }
@@ -45,7 +46,7 @@
     function doPatch(ppp) {
         jQuery.ajax({
             url : "{/literal}{$ajaxUrl}{literal}",
-            complete: function(){
+            success: function(){
                 ppp.doCheckout();
             }
 

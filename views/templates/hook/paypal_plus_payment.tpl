@@ -37,6 +37,7 @@
 
             "language": "{/literal}{$language|escape:'htmlall':'UTF-8'}{literal}",
             "country": "{/literal}{$country|escape:'htmlall':'UTF-8'}{literal}",
+            "buttonLocation": "outside",
             "onContinue" : function () {
                 $('#ppplus iframe').slideUp();
                 $('#ppplus').html('<img style="display:block;margin:15px auto;" src="{/literal}{$img_loader}{literal}"/>');
@@ -47,7 +48,7 @@
         function doPatch(ppp) {
             jQuery.ajax({
                 url : "{/literal}{$ajaxUrl}{literal}",
-                complete: function(){
+                success: function(){
                    ppp.doCheckout();
                }
 

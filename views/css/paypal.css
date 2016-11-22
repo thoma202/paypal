@@ -128,17 +128,17 @@ label span.description{display:block;padding-left:16px}
 }
 
 .braintree-row-payment {
-  padding:5px;
+  padding:5px 5px 5px 10px;
   border:solid 1px #d6d4d4;
   border-radius: 4px;
-  margin:0px;
-  padding-left:10px;
+  margin:0 0 10px 0;
 }
 
 .braintree-row-payment .block_field{
   width: 46%;
   display: block;
   margin-top: 10px;
+  margin-right:1%;
   float: left;
 }
 
@@ -161,7 +161,7 @@ label span.description{display:block;padding-left:16px}
 }
 
 .braintree-row-payment .hosted_field {
-  width: 250px;
+  /*width: 250px;*/
   height: 34px;
   padding: 6px 12px 6px 12px;
   border: 1px solid #cccccc;

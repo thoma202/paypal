@@ -792,7 +792,7 @@ class PayPal extends PaymentModule
                 'payment_hss_template' => Configuration::get('PAYPAL_HSS_TEMPLATE'),
             ));
             $this->getTranslations();
-            return $this->fetchTemplate('integral_evolution_payment.tpl').$return_braintree;
+            return $return_braintree.$this->fetchTemplate('integral_evolution_payment.tpl');
         } elseif ($method == WPS || $method == ECS) {
             $this->getTranslations();
             $this->context->smarty->assign(array(
@@ -807,7 +807,7 @@ class PayPal extends PaymentModule
                 'PayPal_in_context_checkout_merchant_id' => Configuration::get('PAYPAL_IN_CONTEXT_CHECKOUT_M_ID'),
             ));
 
-            return $this->fetchTemplate('express_checkout_payment.tpl').$return_braintree;
+            return $return_braintree.$this->fetchTemplate('express_checkout_payment.tpl');
         } elseif ($method == PPP) {
             $CallApiPaypalPlus = new CallApiPaypalPlus();
             $CallApiPaypalPlus->setParams($params);
@@ -823,7 +823,7 @@ class PayPal extends PaymentModule
                 )
             );
 
-            return $this->fetchTemplate('paypal_plus_payment.tpl').$return_braintree;
+            return $return_braintree.$this->fetchTemplate('paypal_plus_payment.tpl');
         }
     }
 
@@ -869,7 +869,15 @@ class PayPal extends PaymentModule
                 'logo' => $logo,
                 'form' => $this->fetchTemplate('express_checkout_payment_eu.tpl'),
             );
+        } elseif ($method == PPP ) {
+            return array(
+                'cta_text' => $this->l('Paypal, Lastschrift, Kreditkarte, Rechnung'),
+                'logo' => $logo,
+                'form' => $this->fetchTemplate('express_checkout_payment_eu.tpl'),
+            );
         }
+
+
     }
 
     public function hookShoppingCartExtra()
@@ -905,8 +913,15 @@ class PayPal extends PaymentModule
         if (!$this->active) {
             return null;
         }
+        if(Tools::getValue('braintree'))
+        {
+            return $this->fetchTemplate('braintree_return.tpl');
+        }
+        else
+        {
+            return $this->fetchTemplate('confirmation.tpl');
 
-        return $this->fetchTemplate('confirmation.tpl');
+        }
     }
 
     public function hookRightColumn()
@@ -1064,13 +1079,6 @@ class PayPal extends PaymentModule
 
     public function hookBackOfficeHeader()
     {
-        if (Configuration::get('PAYPAL_VERSION_TLS_LAST_UPDATE') < date('Ymd')) {
-            $paypal = new Paypal();
-            $ssl_verif = new TLSVerificator(true, $this);
-            Configuration::updateValue('PAYPAL_VERSION_TLS_CHECKED', $ssl_verif->getVersion());
-            Configuration::updateValue('PAYPAL_VERSION_TLS_LAST_UPDATE', date('Ymd'));
-        }
-
         if ((strcmp(Tools::getValue('configure'), $this->name) === 0) ||
             (strcmp(Tools::getValue('module_name'), $this->name) === 0)) {
             if (version_compare(_PS_VERSION_, '1.5', '<')) {
@@ -1236,8 +1244,9 @@ class PayPal extends PaymentModule
         return TRACKING_CODE;
     }
 
-    public function hookDisplayOrderConfirmation()
+    public function hookDisplayOrderConfirmation($params)
     {
+
         $id_order = (int) Tools::getValue('id_order');
         $transactionId = Db::getInstance()->getValue('SELECT transaction FROM `'._DB_PREFIX_.'paypal_braintree` WHERE id_order = '.(int)$id_order);
         if(!isset($transactionId) || empty($transactionId))
